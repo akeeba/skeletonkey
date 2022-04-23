@@ -35,6 +35,6 @@
 
     <!-- Update servers -->
     <updateservers>
-        <server type="extension" priority="1" name="Akeeba Ticket System">https://cdn.akeeba.com/updates/atspro.xml</server>
+        <server type="extension" priority="1" name="Skeleton Key">https://github.com/akeeba/skeletonkey/blob/main/updates/skeletonkey.xml</server>
     </updateservers>
 </extension>
