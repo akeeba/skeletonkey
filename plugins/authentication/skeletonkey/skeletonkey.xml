@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ @package   Skeletonkey
+  ~ @copyright Copyright © 2022-2022 Nicholas K. Dionysopoulos
+  ~ @license   GPLv3 or later
+  -->
+
+<extension version="4.0.0" type="plugin" group="authentication" method="upgrade">
+    <name>PLG_AUTHENTICATION_SKELETONKEY</name>
+    <author>Akeeba Ltd</author>
+    <authorEmail>no-reply@akeeba.com</authorEmail>
+    <authorUrl>https://www.akeeba.com</authorUrl>
+    <copyright>Copyright (c)2022 Akeeba Ltd / Nicholas K. Dionysopoulos</copyright>
+    <license>GNU GPL v3 or later</license>
+    <creationDate>2022-04-23</creationDate>
+    <version>1.0.0</version>
+    <description>PLG_AUTHENTICATION_SKELETONKEY_XML_DESCRIPTION</description>
+    <namespace path="src">Joomla\Plugin\Authentication\Skeletonkey</namespace>
+
+    <files>
+        <folder>services</folder>
+        <folder plugin="skeletonkey">src</folder>
+    </files>
+
+    <languages folder="language">
+        <language tag="en-GB">en-GB/plg_authentication_skeletonkey.ini</language>
+        <language tag="en-GB">en-GB/plg_authentication_skeletonkey.sys.ini</language>
+    </languages>
+
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+            </fieldset>
+        </fields>
+    </config>
+</extension>

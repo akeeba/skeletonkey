@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ @package   Skeletonkey
+  ~ @copyright Copyright © 2022-2022 Nicholas K. Dionysopoulos
+  ~ @license   GPLv3 or later
+  -->
+
+<extension version="4.0.0" type="package" method="upgrade">
+    <name>pkg_skeletonkey</name>
+    <author>Akeeba Ltd</author>
+    <creationDate>##DATE##</creationDate>
+    <packagename>skeletonkey</packagename>
+    <version>##VERSION##</version>
+    <url>https://www.akeeba.com</url>
+    <packager>Akeeba Ltd</packager>
+    <packagerurl>https://www.akeeba.com</packagerurl>
+    <copyright>Copyright (c)2022-2022 Nicholas K. Dionysopoulos / Akeeba Ltd</copyright>
+    <license>GNU GPL v3 or later</license>
+    <description>PKG_SKELETONKEY_XML_DESCRIPTION</description>
+    <dlid prefix="dlid=" suffix=""/>
+
+    <!-- List of extensions to install -->
+    <files>
+        <file type="plugin" group="authentication" id="skeletonkey">plg_authentication_skeletonkey.zip</file>
+        <file type="plugin" group="system" id="skeletonkey">plg_system_skeletonkey.zip</file>
+
+    </files>
+
+    <languages folder="language">
+        <language tag="en-GB">en-GB/pkg_skeletonkey.sys.ini</language>
+    </languages>
+
+    <!-- Installation script -->
+    <scriptfile>script.ats.php</scriptfile>
+
+    <!-- Update servers -->
+    <updateservers>
+        <server type="extension" priority="1" name="Akeeba Ticket System">https://cdn.akeeba.com/updates/atspro.xml</server>
+    </updateservers>
+</extension>

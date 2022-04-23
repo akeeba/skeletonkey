@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ @package   Skeletonkey
+  ~ @copyright Copyright © 2022-2022 Nicholas K. Dionysopoulos
+  ~ @license   GPLv3 or later
+  -->
+
+<extension version="4.0.0" type="plugin" group="system" method="upgrade">
+    <name>PLG_SYSTEM_SKELETONKEY</name>
+    <author>Akeeba Ltd</author>
+    <authorEmail>no-reply@akeeba.com</authorEmail>
+    <authorUrl>https://www.akeeba.com</authorUrl>
+    <copyright>Copyright (c)2022 Akeeba Ltd / Nicholas K. Dionysopoulos</copyright>
+    <license>GNU GPL v3 or later</license>
+    <creationDate>2022-04-23</creationDate>
+    <version>1.0.0</version>
+    <description>PLG_SYSTEM_SKELETONKEY_XML_DESCRIPTION</description>
+    <namespace path="src">Joomla\Plugin\System\Skeletonkey</namespace>
+
+    <files>
+        <folder>services</folder>
+        <folder plugin="skeletonkey">src</folder>
+    </files>
+
+    <media destination="plg_system_skeletonkey" folder="media">
+        <folder>js</folder>
+        <filename>joomla.asset.json</filename>
+    </media>
+
+    <languages folder="language">
+        <language tag="en-GB">en-GB/plg_system_skeletonkey.ini</language>
+        <language tag="en-GB">en-GB/plg_system_skeletonkey.sys.ini</language>
+    </languages>
+
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="allowedControlGroups"
+                       type="UserGroupList"
+                       layout="joomla.form.field.list-fancy-select"
+                       label="PLG_SYSTEM_SKELETONKEY_CONFIG_ALLOWEDCONTROLGROUPS_LABEL"
+                       description="PLG_SYSTEM_SKELETONKEY_CONFIG_ALLOWEDCONTROLGROUPS_DESC"
+                       multiple="true"
+                       filter="int_array"
+                       size="10"
+                       checksuperusergroup="0"
+                />
+
+                <field name="allowedTargetGroups"
+                       type="UserGroupList"
+                       layout="joomla.form.field.list-fancy-select"
+                       label="PLG_SYSTEM_SKELETONKEY_CONFIG_ALLOWEDTARGETGROUPS_LABEL"
+                       description="PLG_SYSTEM_SKELETONKEY_CONFIG_ALLOWEDTARGETGROUPS_DESC"
+                       multiple="true"
+                       filter="int_array"
+                       size="10"
+                       checksuperusergroup="0"
+                />
+
+                <field name="disallowedTargetGroups"
+                       type="UserGroupList"
+                       layout="joomla.form.field.list-fancy-select"
+                       label="PLG_SYSTEM_SKELETONKEY_CONFIG_DISALLOWEDTARGETGROUPS_LABEL"
+                       description="PLG_SYSTEM_SKELETONKEY_CONFIG_DISALLOWEDTARGETGROUPS_DESC"
+                       multiple="true"
+                       filter="int_array"
+                       size="10"
+                       checksuperusergroup="0"
+                />
+            </fieldset>
+        </fields>
+    </config>
+</extension>

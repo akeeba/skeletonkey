@@ -1,0 +1,10 @@
+## NPM build dependencies
+node_modules/**
+
+## Release files
+release/**
+
+## Composer directory (Composer is only used for metadata)
+vendor/**
+
+/pkg_skeletonkey.xml
