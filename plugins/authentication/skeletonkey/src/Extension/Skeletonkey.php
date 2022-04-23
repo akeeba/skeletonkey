@@ -17,6 +17,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\User\UserFactoryInterface;
 use Joomla\CMS\User\UserHelper;
@@ -76,6 +77,14 @@ class Skeletonkey extends CMSPlugin
 		// Skeleton key only works in the frontend
 		if (!$this->app->isClient('site'))
 		{
+			return false;
+		}
+
+		// Make sure the system plugin is enabled. If not, abort.
+		if (!PluginHelper::isEnabled('system', 'skeletonkey'))
+		{
+			$this->destroyCookie();
+
 			return false;
 		}
 

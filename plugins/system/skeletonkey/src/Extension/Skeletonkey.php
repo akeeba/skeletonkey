@@ -16,6 +16,7 @@ use Joomla\CMS\Event\View\DisplayEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\User\User;
@@ -136,6 +137,14 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 			return;
 		}
 
+		// Make sure the authentication plugin is enabled. If not, warn the user.
+		if (!PluginHelper::isEnabled('authentication', 'skeletonkey'))
+		{
+			$this->app->enqueueMessage(Text::_('PLG_SYSTEM_SKELETONKEY_LBL_NOAUTHPLUGIN'), CMSApplication::MSG_ERROR);
+
+			return;
+		}
+
 		// Find the displayed users and tell the frontend JS which users should get login buttons
 		$refObject = new \ReflectionObject($view);
 		$refProp   = $refObject->getProperty('items');
@@ -189,6 +198,11 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 			return;
 		}
 
+		// Make sure the authentication plugin is enabled. If not, quit,
+		if (!PluginHelper::isEnabled('authentication', 'skeletonkey'))
+		{
+			return;
+		}
 
 		// If the cookie is set try to log in the user using it
 		$cookieName = self::COOKIE_PREFIX . $this->getHashedUserAgent();
@@ -230,6 +244,14 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		$currentUser = $this->app->getIdentity();
 
 		if (!($currentUser instanceof User) || empty(array_intersect($currentUser->getAuthorisedGroups(), $this->allowedControlGroups)))
+		{
+			$this->addEventResult($event, false);
+
+			return;
+		}
+
+		// Make sure the authentication plugin is enabled.
+		if (!PluginHelper::isEnabled('authentication', 'skeletonkey'))
 		{
 			$this->addEventResult($event, false);
 
@@ -321,7 +343,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 
 		// Get the parameter values
 		$lifetime = $this->params->get('cookie_lifetime', 10);
-		$length   = $this->params->get('key_length', 16);
+		$length   = $this->params->get('key_length', 32);
 
 		// Generate new cookie
 		$token       = UserHelper::genRandomPassword($length);

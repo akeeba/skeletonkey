@@ -43,6 +43,8 @@
                        multiple="true"
                        filter="int_array"
                        size="10"
+                       default="8"
+                       required="true"
                        checksuperusergroup="0"
                 />
 
@@ -54,6 +56,8 @@
                        multiple="true"
                        filter="int_array"
                        size="10"
+                       default="2"
+                       required="true"
                        checksuperusergroup="0"
                 />
 
@@ -65,8 +69,36 @@
                        multiple="true"
                        filter="int_array"
                        size="10"
+                       default="7,8"
                        checksuperusergroup="0"
                 />
+
+                <field
+                        name="cookie_lifetime"
+                        type="number"
+                        label="PLG_SYSTEM_SKELETONKEY_CONFIG_COOKIE_LIFETIME_LABEL"
+                        description="PLG_SYSTEM_SKELETONKEY_CONFIG_COOKIE_LIFETIME_DESC"
+                        default="10"
+                        filter="integer"
+                        required="true"
+                />
+
+                <field
+                        name="key_length"
+                        type="list"
+                        label="PLG_SYSTEM_SKELETONKEY_CONFIG_KEY_LENGTH_LABEL"
+                        description="PLG_SYSTEM_SKELETONKEY_CONFIG_KEY_LENGTH_DESC"
+                        default="32"
+                        filter="integer"
+                        required="true"
+                        validate="options"
+                >
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                    <option value="64">64</option>
+                </field>
+
             </fieldset>
         </fields>
     </config>

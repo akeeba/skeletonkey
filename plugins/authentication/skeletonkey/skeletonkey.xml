@@ -26,11 +26,4 @@
         <language tag="en-GB">en-GB/plg_authentication_skeletonkey.ini</language>
         <language tag="en-GB">en-GB/plg_authentication_skeletonkey.sys.ini</language>
     </languages>
-
-    <config>
-        <fields name="params">
-            <fieldset name="basic">
-            </fieldset>
-        </fields>
-    </config>
 </extension>
