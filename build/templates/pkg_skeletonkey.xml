@@ -17,7 +17,6 @@
     <copyright>Copyright (c)2022-2022 Nicholas K. Dionysopoulos / Akeeba Ltd</copyright>
     <license>GNU GPL v3 or later</license>
     <description>PKG_SKELETONKEY_XML_DESCRIPTION</description>
-    <dlid prefix="dlid=" suffix=""/>
 
     <!-- List of extensions to install -->
     <files>
