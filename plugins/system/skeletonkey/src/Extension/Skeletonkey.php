@@ -400,13 +400,28 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 			?? $this->params->get('allowedControlGroups', null)
 			?? [8];
 
+		if (is_string($this->allowedControlGroups))
+		{
+			$this->allowedControlGroups = array_map('intval', explode(',', $this->allowedControlGroups));
+		}
+
 		$this->allowedTargetGroups = $this->allowedTargetGroups
 			?? $this->params->get('allowedTargetGroups', null)
 			?? [2];
 
+		if (is_string($this->allowedTargetGroups))
+		{
+			$this->allowedTargetGroups = array_map('intval', explode(',', $this->allowedTargetGroups));
+		}
+
 		$this->disallowedTargetGroups = $this->disallowedTargetGroups
 			?? $this->params->get('disallowedTargetGroups', null)
 			?? [7, 8];
+
+		if (is_string($this->disallowedTargetGroups))
+		{
+			$this->disallowedTargetGroups = array_map('intval', explode(',', $this->disallowedTargetGroups));
+		}
 	}
 
 	/**
