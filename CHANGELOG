@@ -1,6 +1,7 @@
 Skeleton Key 1.0.2
 ================================================================================
 # [HIGH] Immediate error on PHP 8 because of the idiotic way default options for multiselect fields work in Joomla.
+# [HIGH] Wrong update site URL
 
 Skeleton Key 1.0.1
 ================================================================================
