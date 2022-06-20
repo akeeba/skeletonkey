@@ -48,6 +48,14 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 	protected $db;
 
 	/**
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
+	 * @since  1.0.3
+	 */
+	protected $autoloadLanguage = false;
+
+	/**
 	 * Groups allowed to login as another user
 	 *
 	 * @var   array|null
