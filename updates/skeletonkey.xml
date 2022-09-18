@@ -9,6 +9,27 @@
         <name>Skeleton Key</name>
         <element>pkg_skeletonkey</element>
         <type>package</type>
+        <version>1.0.4</version>
+        <infourl title="Skeleton Key 1.0.4">https://github.com/akeeba/skeletonkey/releases/tag/1.0.4</infourl>
+        <downloads>
+            <downloadurl type="full" format="zip">
+                https://github.com/akeeba/skeletonkey/releases/download/1.0.4/pkg_skeletonkey-1.0.4.zip
+            </downloadurl>
+        </downloads>
+        <tags>
+            <tag>stable</tag>
+        </tags>
+        <targetplatform name="joomla" version="4.[012]"/>
+        <sha256>
+            ed312a4bd8c70cc5dc312123752a94da345a6d2a64bb82ccec91a04b18dbb252
+        </sha256>
+        <client>site</client>
+        <php_minimum>7.2</php_minimum>
+    </update>
+    <update>
+        <name>Skeleton Key</name>
+        <element>pkg_skeletonkey</element>
+        <type>package</type>
         <version>1.0.3</version>
         <infourl title="Skeleton Key 1.0.3">https://github.com/akeeba/skeletonkey/releases/tag/1.0.3</infourl>
         <downloads>
