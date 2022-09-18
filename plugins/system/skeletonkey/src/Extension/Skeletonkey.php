@@ -271,7 +271,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		$userId = $this->app->input->get->getInt('user_id');
 		$user   = Factory::getContainer()->get(UserFactoryInterface::class)->loadUserById($userId);
 
-		if ($user <= 0 || $user->id != $userId)
+		if ($user->id <= 0 || $user->id != $userId)
 		{
 			$this->addEventResult($event, false);
 

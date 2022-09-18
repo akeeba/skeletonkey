@@ -1,3 +1,7 @@
+Skeleton Key 1.0.4
+================================================================================
+# [HIGH] PHP 8 warning may prevent the login from working
+
 Skeleton Key 1.0.3
 ================================================================================
 # [LOW] Untranslated key PLG_SYSTEM_SKELETONKEY_LBL_NOAUTHPLUGIN when the Authentication plugin is not published.
