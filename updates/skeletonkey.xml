@@ -21,7 +21,7 @@
         </tags>
         <targetplatform name="joomla" version="4.[012]"/>
         <sha256>
-            ed312a4bd8c70cc5dc312123752a94da345a6d2a64bb82ccec91a04b18dbb252
+            2a38bdfe1dc7cb42803b2584c7e039c1843e63d833d77c9d0f98e05453664fad
         </sha256>
         <client>site</client>
         <php_minimum>7.2</php_minimum>
