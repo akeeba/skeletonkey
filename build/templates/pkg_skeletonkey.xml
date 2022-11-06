@@ -5,7 +5,7 @@
   ~ @license   GPLv3 or later
   -->
 
-<extension version="4.0.0" type="package" method="upgrade">
+<extension type="package" method="upgrade">
     <name>pkg_skeletonkey</name>
     <author>Akeeba Ltd</author>
     <creationDate>##DATE##</creationDate>

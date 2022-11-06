@@ -5,7 +5,7 @@
   ~ @license   GPLv3 or later
   -->
 
-<extension version="4.0.0" type="plugin" group="authentication" method="upgrade">
+<extension type="plugin" group="authentication" method="upgrade">
     <name>PLG_AUTHENTICATION_SKELETONKEY</name>
     <author>Akeeba Ltd</author>
     <authorEmail>no-reply@akeeba.com</authorEmail>
