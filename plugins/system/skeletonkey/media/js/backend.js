@@ -1,6 +1,6 @@
 /**
  * @package   Skeletonkey
- * @copyright Copyright (c)2022 Nicholas K. Dionysopoulos
+ * @copyright Copyright (c)2022-2023 Nicholas K. Dionysopoulos
  * @license   GPLv3 or later
  */
 
