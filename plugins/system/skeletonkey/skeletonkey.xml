@@ -12,7 +12,7 @@
     <authorUrl>https://www.akeeba.com</authorUrl>
     <copyright>Copyright (c)2022-2023 Akeeba Ltd / Nicholas K. Dionysopoulos</copyright>
     <license>GNU GPL v3 or later</license>
-    <creationDate>2022-09-18</creationDate>
+    <creationDate>2023-05-10</creationDate>
     <version>1.0.4</version>
     <description>PLG_SYSTEM_SKELETONKEY_XML_DESCRIPTION</description>
     <namespace path="src">Joomla\Plugin\System\Skeletonkey</namespace>
