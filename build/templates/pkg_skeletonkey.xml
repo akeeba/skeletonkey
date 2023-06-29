@@ -17,6 +17,7 @@
     <copyright>Copyright (c)2022-2023 Nicholas K. Dionysopoulos / Akeeba Ltd</copyright>
     <license>GNU GPL v3 or later</license>
     <description>PKG_SKELETONKEY_XML_DESCRIPTION</description>
+    <blockChildUninstall>true</blockChildUninstall>
 
     <!-- List of extensions to install -->
     <files>
