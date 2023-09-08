@@ -50,7 +50,7 @@ const initSkeletonKey = () => {
 		// Create the login button itseld
 		const elLink = document.createElement('button');
 		elLink.setAttribute('type', 'button');
-		elLink.classList.add('btn', 'btn-dark', 'btn-sm', 'ms-1');
+		elLink.classList.add('btn', 'btn-dark', 'btn-sm');
 		elLink.appendChild(elIcon);
 		elLink.appendChild(elSpan);
 
