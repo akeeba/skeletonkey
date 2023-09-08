@@ -40,7 +40,7 @@ const initSkeletonKey = () => {
 
 		// Create the icon for the login button
 		const elIcon = document.createElement('span');
-		elIcon.classList.add('icon-external-link-alt', 'me-1');
+		elIcon.classList.add('fa','fa-external-link-alt');
 		elIcon.setAttribute('aria-hidden', 'true');
 
 		// Create the text for the login button
