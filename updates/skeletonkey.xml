@@ -21,7 +21,7 @@
         </tags>
         <targetplatform name="joomla" version="4.[01234]|5.0"/>
         <sha256>
-            2a38bdfe1dc7cb42803b2584c7e039c1843e63d833d77c9d0f98e05453664fad
+            f0263a409e3317ad3074a45b7ad41ddf00228308741c8d4130e878296f536c18
         </sha256>
         <client>site</client>
         <php_minimum>7.2</php_minimum>
@@ -64,27 +64,6 @@
         <targetplatform name="joomla" version="4.[012]"/>
         <sha256>
             ed312a4bd8c70cc5dc312123752a94da345a6d2a64bb82ccec91a04b18dbb252
-        </sha256>
-        <client>site</client>
-        <php_minimum>7.2</php_minimum>
-    </update>
-    <update>
-        <name>Skeleton Key</name>
-        <element>pkg_skeletonkey</element>
-        <type>package</type>
-        <version>1.0.1</version>
-        <infourl title="Skeleton Key 1.0.1">https://github.com/akeeba/skeletonkey/releases/tag/1.0.1</infourl>
-        <downloads>
-            <downloadurl type="full" format="zip">
-                https://github.com/akeeba/skeletonkey/releases/download/1.0.1/pkg_skeletonkey-1.0.1.zip
-            </downloadurl>
-        </downloads>
-        <tags>
-            <tag>stable</tag>
-        </tags>
-        <targetplatform name="joomla" version="4\.(0|1)"/>
-        <sha256>
-            31ef4f4cf48adb670aea521cb5ba2afbfe746aa1b1f7de2007d774dcab1dae11
         </sha256>
         <client>site</client>
         <php_minimum>7.2</php_minimum>
