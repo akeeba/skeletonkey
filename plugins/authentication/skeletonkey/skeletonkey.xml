@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ @package   Skeletonkey
-  ~ @copyright Copyright (c)2022-2023 Nicholas K. Dionysopoulos
+  ~ @copyright Copyright (c)2022-2024 Nicholas K. Dionysopoulos
   ~ @license   GPLv3 or later
   -->
 
@@ -10,7 +10,7 @@
     <author>Akeeba Ltd</author>
     <authorEmail>no-reply@akeeba.com</authorEmail>
     <authorUrl>https://www.akeeba.com</authorUrl>
-    <copyright>Copyright (c)2022-2023 Akeeba Ltd / Nicholas K. Dionysopoulos</copyright>
+    <copyright>Copyright (c)2022-2024 Nicholas K. Dionysopoulos</copyright>
     <license>GNU GPL v3 or later</license>
     <creationDate>2023-09-24</creationDate>
     <version>1.0.6</version>
