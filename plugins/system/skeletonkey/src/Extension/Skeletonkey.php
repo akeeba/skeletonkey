@@ -322,7 +322,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		do
 		{
 			$series = UserHelper::genRandomPassword(20);
-			$query  = $this->db->getQuery(true)
+			$query  = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
 			                   ->select($this->db->quoteName('series'))
 			                   ->from($this->db->quoteName('#__user_keys'))
 			                   ->where($this->db->quoteName('series') . ' = :series')
@@ -362,7 +362,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		try
 		{
 			$future = (time() + $lifetime);
-			$query  = $this->db->getQuery(true);
+			$query  = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true));
 			$query
 				->insert($this->db->quoteName('#__user_keys'))
 				->set($this->db->quoteName('user_id') . ' = :userid')

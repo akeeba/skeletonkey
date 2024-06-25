@@ -118,7 +118,7 @@ class Skeletonkey extends CMSPlugin
 		$now    = time();
 
 		// Remove expired tokens
-		$query = $this->db->getQuery(true)
+		$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
 		                  ->delete($this->db->quoteName('#__user_keys'))
 		                  ->where($this->db->quoteName('time') . ' < :now')
 		                  ->bind(':now', $now);
@@ -133,7 +133,7 @@ class Skeletonkey extends CMSPlugin
 		}
 
 		// Find the matching record if it exists.
-		$query = $this->db->getQuery(true)
+		$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
 		                  ->select($this->db->quoteName(['user_id', 'token', 'series', 'time']))
 		                  ->from($this->db->quoteName('#__user_keys'))
 		                  ->where($this->db->quoteName('series') . ' = :series')
@@ -172,7 +172,7 @@ class Skeletonkey extends CMSPlugin
 			 * Either the series was guessed correctly or a cookie was stolen and used twice (once by attacker and once by victim).
 			 * Delete all tokens for this user!
 			 */
-			$query = $this->db->getQuery(true)
+			$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
 			                  ->delete($this->db->quoteName('#__user_keys'))
 			                  ->where($this->db->quoteName('user_id') . ' = :userid')
 			                  ->bind(':userid', $results[0]->user_id);
@@ -202,7 +202,7 @@ class Skeletonkey extends CMSPlugin
 		}
 
 		// Make sure there really is a user with this name and get the data for the session.
-		$query = $this->db->getQuery(true)
+		$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
 		                  ->select($this->db->quoteName(['id', 'username', 'password']))
 		                  ->from($this->db->quoteName('#__users'))
 		                  ->where($this->db->quoteName('username') . ' = :userid')
@@ -280,7 +280,7 @@ class Skeletonkey extends CMSPlugin
 		$series = $filter->clean($cookieArray[1], 'ALNUM');
 
 		// Remove the record from the database
-		$query = $this->db->getQuery(true)
+		$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
 		                  ->delete($this->db->quoteName('#__user_keys'))
 		                  ->where($this->db->quoteName('series') . ' = :series')
 		                  ->bind(':series', $series);
