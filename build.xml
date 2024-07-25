@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+  ~ @package   Skeletonkey
+  ~ @copyright Copyright (c)2024 Nicholas K. Dionysopoulos
+  ~ @license   GPLv3 or later
+  -->
+
+<project name="SkeletonKey" description="Allows administrators to login as any user" default="git" >
+	<import file="${phing.dir}/../buildfiles/phing/common.xml" />
+
+	<fileset dir="${dirs.release}" id="package">
+		<include name="plg_*.zip"/>
+
+		<include name="language/**"/>
+
+		<include name="pkg_*.xml"/>
+		<include name="*.txt"/>
+	</fileset>
+
+	<target name="release" depends="github-release">
+		<!-- Dependencies are enough -->
+	</target>
+</project>
