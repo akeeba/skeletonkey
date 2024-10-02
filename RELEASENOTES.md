@@ -1,1 +1,1 @@
-This version allows opening the frontend page in a new tab.
+This is a bugfix release.
