@@ -27,6 +27,7 @@ use Joomla\Database\DatabaseDriver;
 use Joomla\Database\ParameterType;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
+use Joomla\Utilities\ArrayHelper;
 use RuntimeException;
 
 class Skeletonkey extends CMSPlugin implements SubscriberInterface
@@ -180,7 +181,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		$wam      = $document->getWebAssetManager();
 		$wam->getRegistry()->addExtensionRegistryFile('plg_system_skeletonkey');
 		$document->addScriptOptions('plg_system_skeletonkey', [
-			'loginUsers' => $loginUsers,
+			'loginUsers' => ArrayHelper::toInteger($loginUsers),
 		]);
 		$wam->useScript('plg_system_skeletonkey.backend');
 

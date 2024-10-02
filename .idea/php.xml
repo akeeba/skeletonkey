@@ -11,6 +11,7 @@
   </component>
   <component name="PhpIncludePathManager">
     <include_path>
+      <path value="$PROJECT_DIR$/../../master/joomla5" />
       <path value="$PROJECT_DIR$/../../master/joomla4" />
       <path value="$USER_HOME$/Sites/boot4/configuration.php" />
       <path value="$PROJECT_DIR$/vendor/composer" />

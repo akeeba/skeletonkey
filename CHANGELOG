@@ -1,6 +1,7 @@
 Skeleton Key 1.0.7
 ================================================================================
 ~ Support for Joomla! 5.1's createQuery method in the db object
+# [HIGH] Does not work on some sites / browsers [gh-9]
 
 Skeleton Key 1.0.6
 ================================================================================
