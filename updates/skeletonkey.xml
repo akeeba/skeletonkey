@@ -19,7 +19,7 @@
         <tags>
             <tag>stable</tag>
         </tags>
-        <targetplatform name="joomla" version="4.[01234]|5.0"/>
+        <targetplatform name="joomla" version="4.[01234]|5.[01234]"/>
         <sha256>
             ac69d7bdfb238e12fd9cb8deabdb71301e154c75d1398603aec516b1553922a4
         </sha256>
