@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ @package   Skeletonkey
+  ~ @copyright Copyright (c)2024 Nicholas K. Dionysopoulos
+  ~ @license   GPLv3 or later
+  -->
+
+<extension type="plugin" group="actionlog" method="upgrade">
+	<name>PLG_ACTIONLOG_SKELETONKEY</name>
+	<author>Akeeba Ltd</author>
+	<authorEmail>no-reply@akeeba.com</authorEmail>
+	<authorUrl>https://www.akeeba.com</authorUrl>
+	<copyright>Copyright (c)2022-2024 Nicholas K. Dionysopoulos</copyright>
+	<license>GNU GPL v3 or later</license>
+	<creationDate>2024-10-02</creationDate>
+	<version>1.0.7</version>
+	<description>PLG_ACTIONLOG_SKELETONKEY_XML_DESCRIPTION</description>
+	<namespace path="src">Akeeba\Plugin\ActionLog\SkeletonKey</namespace>
+
+	<files>
+		<folder plugin="skeletonkey">services</folder>
+		<folder>src</folder>
+	</files>
+
+	<languages folder="language">
+		<language tag="en-GB">en-GB/plg_actionlog_skeletonkey.ini</language>
+		<language tag="en-GB">en-GB/plg_actionlog_skeletonkey.sys.ini</language>
+	</languages>
+
+</extension>

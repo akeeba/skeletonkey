@@ -29,6 +29,7 @@ use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Utilities\ArrayHelper;
 use RuntimeException;
+use Throwable;
 
 class Skeletonkey extends CMSPlugin implements SubscriberInterface
 {
@@ -291,7 +292,16 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		}
 
 		// Create the cookie
-		$this->addEventResult($event, $this->createCookie($userId));
+		$createdCookie = $this->createCookie($userId);
+
+		// Trigger the Action Log plugin
+		$this->getDispatcher()->dispatch(
+			'onSkeletonKeyRequestLogin',
+			new Event('onSkeletonKeyRequestLogin', [$currentUser, $user, $createdCookie])
+		);
+
+		// Return the event result back to com_ajax
+		$this->addEventResult($event, $createdCookie);
 	}
 
 	/**
@@ -460,5 +470,4 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 
 		$event->setArgument('result', $values);
 	}
-
 }

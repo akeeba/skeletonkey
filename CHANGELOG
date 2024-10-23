@@ -1,3 +1,7 @@
+Skeleton Key 1.1.0
+================================================================================
++ Action Log plugin [gh-11]
+
 Skeleton Key 1.0.7
 ================================================================================
 ~ Support for Joomla! 5.1's createQuery method in the db object

@@ -23,15 +23,13 @@
     <files>
         <file type="plugin" group="authentication" id="skeletonkey">plg_authentication_skeletonkey.zip</file>
         <file type="plugin" group="system" id="skeletonkey">plg_system_skeletonkey.zip</file>
+        <file type="plugin" group="actionlog" id="skeletonkey">plg_actionlog_skeletonkey.zip</file>
 
     </files>
 
     <languages folder="language">
         <language tag="en-GB">en-GB/pkg_skeletonkey.sys.ini</language>
     </languages>
-
-    <!-- Installation script -->
-    <scriptfile>script.ats.php</scriptfile>
 
     <!-- Update servers -->
     <updateservers>

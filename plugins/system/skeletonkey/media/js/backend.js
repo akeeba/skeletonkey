@@ -62,6 +62,10 @@ const initSkeletonKey = () => {
 			const token = Joomla.getOptions('csrf.token');
 			const uri   = `${paths ? `${paths.base}/index.php` : window.location.pathname}?option=com_ajax&format=json&plugin=skeletonkey&group=system&user_id=%d${token ? `&${token}=1` : ''}`;
 
+			Joomla.renderMessages({
+				info: ['Making request...']
+			});
+
 			Joomla.request({
 				url:       uri.replace('%d', userId.toString()),
 				onSuccess: (data, xhr) => {

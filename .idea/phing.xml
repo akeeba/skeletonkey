@@ -10,6 +10,6 @@
         </option>
       </buildFile>
     </buildFilePaths>
-    <phingPath>/home/nicholas/.config/composer/vendor/bin/phing</phingPath>
+    <phingPath>$USER_HOME$/.config/composer/vendor/bin/phing</phingPath>
   </component>
 </project>
