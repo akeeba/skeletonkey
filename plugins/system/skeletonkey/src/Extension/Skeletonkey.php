@@ -150,6 +150,8 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		// Make sure the authentication plugin is enabled. If not, warn the user.
 		if (!PluginHelper::isEnabled('authentication', 'skeletonkey'))
 		{
+			$this->loadLanguage();
+
 			$this->app->enqueueMessage(Text::_('PLG_SYSTEM_SKELETONKEY_LBL_NOAUTHPLUGIN'), CMSApplication::MSG_ERROR);
 
 			return;
