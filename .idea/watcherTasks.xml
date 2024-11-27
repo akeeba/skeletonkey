@@ -14,12 +14,14 @@
         <array />
       </option>
       <option name="outputFromStdout" value="false" />
-      <option name="program" value="$ProjectFileDir$/node_modules/.bin/babel" />
+      <option name="program" value="$ProjectFileDir$/../buildfiles/node_modules/.bin/babel" />
       <option name="runOnExternalChanges" value="true" />
       <option name="scopeName" value="ES5" />
       <option name="trackOnlyRoot" value="true" />
       <option name="workingDir" value="$FileDir$" />
-      <envs />
+      <envs>
+        <env name="NODE_PATH" value="$ProjectFileDir$/../buildfiles/node_modules" />
+      </envs>
     </TaskOptions>
   </component>
 </project>
