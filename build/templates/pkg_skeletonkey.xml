@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ @package   Skeletonkey
-  ~ @copyright Copyright (c)2022-2024 Nicholas K. Dionysopoulos
+  ~ @copyright Copyright (c)2022-2025 Nicholas K. Dionysopoulos
   ~ @license   GPLv3 or later
   -->
 
@@ -14,7 +14,7 @@
     <url>https://www.akeeba.com</url>
     <packager>Akeeba Ltd</packager>
     <packagerurl>https://www.akeeba.com</packagerurl>
-    <copyright>Copyright (c)2022-2024 Nicholas K. Dionysopoulos / Akeeba Ltd</copyright>
+    <copyright>Copyright (c)2022-2025 Nicholas K. Dionysopoulos / Akeeba Ltd</copyright>
     <license>GNU GPL v3 or later</license>
     <description>PKG_SKELETONKEY_XML_DESCRIPTION</description>
     <blockChildUninstall>true</blockChildUninstall>
