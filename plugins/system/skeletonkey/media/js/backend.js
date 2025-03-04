@@ -6,93 +6,113 @@
 
 'use strict';
 
-if (!window.Joomla)
-{
-	throw new Error('Joomla API was not properly initialised');
-}
-
-const initSkeletonKey = () => {
-	// Get the user list rows
-	const options = Joomla.getOptions('plg_system_skeletonkey');
-	const rows    = document.querySelectorAll('table#userList>tbody tr');
-
-	// No user rows? Nothing to do here.
-	if (!rows || rows.length < 1)
+((window, document) => {
+	if (!window.Joomla)
 	{
-		return;
+		throw new Error('Joomla API was not properly initialised');
 	}
 
-	// Iterate through all of the rows
-	rows.forEach((elRow) => {
-		// Get the user ID
-		const elCells = elRow.querySelectorAll('td');
-		const userId  = elCells[elCells.length - 1].textContent * 1;
+	const initSkeletonKey = () => {
+		handleUserListPage();
+		handleLoginButtons();
+	}
 
-		// If we are not allowed to log in this user go away.
-		if (options.loginUsers.indexOf(userId) === -1)
+	const handleUserListPage = () => {
+		// Get the user list rows
+		const options = Joomla.getOptions('plg_system_skeletonkey');
+		const rows    = document.querySelectorAll('table#userList>tbody tr');
+
+		// No user rows? Nothing to do here.
+		if (!rows || rows.length < 1)
 		{
 			return;
 		}
 
-		// Find the button group which has the Add Note button
-		const elButtonGroups = elRow.querySelectorAll('th div.btn-group');
-		const elButtonGroup  = elButtonGroups[0];
+		// Iterate through all rows
+		rows.forEach((elRow) => {
+			// Get the user ID
+			const elCells = elRow.querySelectorAll('td');
+			const userId  = elCells[elCells.length - 1].textContent * 1;
 
-		// Create the icon for the login button
-		const elIcon = document.createElement('span');
-		elIcon.classList.add('fa','fa-external-link-alt', 'pe-1');
-		elIcon.setAttribute('aria-hidden', 'true');
+			// If we are not allowed to log in this user go away.
+			if (options.loginUsers.indexOf(userId) === -1)
+			{
+				return;
+			}
 
-		// Create the text for the login button
-		const elSpan       = document.createElement('span');
-		elSpan.textContent = Joomla.Text._('PLG_SYSTEM_SKELETONKEY_BTN_LABEL');
+			// Find the button group which has the Add Note button
+			const elButtonGroups = elRow.querySelectorAll('th div.btn-group');
+			const elButtonGroup  = elButtonGroups[0];
 
-		// Create the login button itseld
-		const elLink = document.createElement('button');
-		elLink.setAttribute('type', 'button');
-		elLink.classList.add('btn', 'btn-dark', 'btn-sm');
-		elLink.appendChild(elIcon);
-		elLink.appendChild(elSpan);
+			// Create the icon for the login button
+			const elIcon = document.createElement('span');
+			elIcon.classList.add('fa', 'fa-external-link-alt', 'pe-1');
+			elIcon.setAttribute('aria-hidden', 'true');
 
-		// Create a special click event handler
-		elLink.addEventListener('click', (e) => {
-			e.preventDefault();
+			// Create the text for the login button
+			const elSpan       = document.createElement('span');
+			elSpan.textContent = Joomla.Text._('PLG_SYSTEM_SKELETONKEY_BTN_LABEL');
 
-			const paths = Joomla.getOptions('system.paths');
-			const token = Joomla.getOptions('csrf.token');
-			const uri   = `${paths ? `${paths.base}/index.php` : window.location.pathname}?option=com_ajax&format=json&plugin=skeletonkey&group=system&user_id=%d${token ? `&${token}=1` : ''}`;
+			// Create the login button itseld
+			const elLink = document.createElement('button');
+			elLink.setAttribute('type', 'button');
+			elLink.dataset['userid'] = userId;
+			elLink.classList.add('btn', 'btn-dark', 'btn-sm', 'button-skeletonkey');
+			elLink.appendChild(elIcon);
+			elLink.appendChild(elSpan);
 
-			Joomla.renderMessages({
-				info: ['Making request...']
-			});
+			// Append the login button to the button group, after the Add Note button
+			elButtonGroup.appendChild(elLink);
+		});
+	}
 
-			Joomla.request({
-				url:       uri.replace('%d', userId.toString()),
-				onSuccess: (data, xhr) => {
-					const returnedData = JSON.parse(data).data;
+	const handleLoginButtons = () => {
+		document.querySelectorAll('.button-skeletonkey').forEach((elButton) => {
+			elButton.addEventListener('click', loginButtonClickHandler);
+		})
+	}
 
-					if (!returnedData || returnedData[0] === false)
-					{
-						Joomla.renderMessages({
-							error: [Joomla.Text._('PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED')]
-						});
+	const loginButtonClickHandler = (e) => {
+		e.preventDefault();
 
-						return;
-					}
+		const currentUserId = e.currentTarget.dataset['userid'];
 
-					window.open(paths.rootFull, '_blank');
-				},
-				onError:   (xhr) => {
-					Joomla.renderMessages({
-						error: [Joomla.Text._('PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED_AJAX')]
-					});
-				}
-			});
+		if (typeof currentUserId === 'undefined' || !currentUserId)
+		{
+			return;
+		}
+
+		const paths = Joomla.getOptions('system.paths');
+		const token = Joomla.getOptions('csrf.token');
+		const uri   = `${paths ? `${paths.base}/index.php` : window.location.pathname}?option=com_ajax&format=json&plugin=skeletonkey&group=system&user_id=%d${token ? `&${token}=1` : ''}`;
+
+		Joomla.renderMessages({
+			info: ['Making request...']
 		});
 
-		// Append the login button to the button group, after the Add Note button
-		elButtonGroup.appendChild(elLink);
-	});
-}
+		Joomla.request({
+			url:       uri.replace('%d', currentUserId.toString()),
+			onSuccess: (data, xhr) => {
+				const returnedData = JSON.parse(data).data;
 
-initSkeletonKey();
+				if (!returnedData || returnedData[0] === false)
+				{
+					Joomla.renderMessages({
+						error: [Joomla.Text._('PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED')]
+					});
+
+					return;
+				}
+
+				window.open(paths.rootFull, '_blank');
+			},
+			onError:   (xhr) => {
+				Joomla.renderMessages({
+					error: [Joomla.Text._('PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED_AJAX')]
+				});
+			}
+		});
+	}
+
+	initSkeletonKey();
+})(window, document);

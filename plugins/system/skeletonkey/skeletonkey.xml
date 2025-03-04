@@ -39,6 +39,32 @@
     <config>
         <fields name="params">
             <fieldset name="basic">
+                <field
+                        name="showOnList"
+                        type="radio"
+                        label="PLG_SYSTEM_SKELETONKEY_CONFIG_SHOWONLIST_LABEL"
+                        description="PLG_SYSTEM_SKELETONKEY_CONFIG_SHOWONLIST_DESC"
+                        layout="joomla.form.field.radio.switcher"
+                        default="1"
+                        filter="integer"
+                >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+
+                <field
+                        name="showOnEdit"
+                        type="radio"
+                        label="PLG_SYSTEM_SKELETONKEY_CONFIG_SHOWONEDIT_LABEL"
+                        description="PLG_SYSTEM_SKELETONKEY_CONFIG_SHOWONEDIT_DESC"
+                        layout="joomla.form.field.radio.switcher"
+                        default="1"
+                        filter="integer"
+                >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+
                 <field name="allowedControlGroups"
                        type="UserGroupList"
                        layout="joomla.form.field.list-fancy-select"

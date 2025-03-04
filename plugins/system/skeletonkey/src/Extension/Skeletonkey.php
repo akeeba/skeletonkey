@@ -18,10 +18,13 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Session\Session;
+use Joomla\CMS\Toolbar\Toolbar;
+use Joomla\CMS\Toolbar\ToolbarFactoryInterface;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\User\User;
 use Joomla\CMS\User\UserFactoryInterface;
 use Joomla\CMS\User\UserHelper;
+use Joomla\Component\Users\Administrator\View\User\HtmlView as UserHtmlView;
 use Joomla\Component\Users\Administrator\View\Users\HtmlView as UsersHtmlView;
 use Joomla\Database\DatabaseDriver;
 use Joomla\Database\ParameterType;
@@ -29,7 +32,6 @@ use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Utilities\ArrayHelper;
 use RuntimeException;
-use Throwable;
 
 class Skeletonkey extends CMSPlugin implements SubscriberInterface
 {
@@ -100,8 +102,87 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		return [
 			'onAfterInitialise' => 'onAfterInitialise',
 			'onBeforeDisplay'   => 'onBeforeDisplay',
+			'onAfterDispatch'    => 'onAfterDispatch',
 			'onAjaxSkeletonkey' => 'onAjaxSkeletonkey',
 		];
+	}
+
+	public function onAfterDispatch(Event $event)
+	{
+		// Make sure the current user can use SkeletonKey
+		if (!$this->canUseSkeletonKey())
+		{
+			return;
+		}
+
+		// Make sure it's the correct component and view
+		$input      = $this->app->input;
+		$optionName = $input->getCmd('option');
+		$layoutName = $input->getCmd('layout');
+		$viewName   = $input->getCmd('view');
+		$userId     = $input->getInt('id') ?? 0;
+
+		if (
+			strtolower($optionName ?? '') !== 'com_users'
+			|| strtolower($viewName ?? '') !== 'user'
+			|| strtolower($layoutName ?? '') !== 'edit'
+			|| $userId <= 0
+		)
+		{
+			return;
+		}
+
+		// Make sure the authentication plugin is enabled. If not, warn the user.
+		if (!$this->isAuthPluginEnabled())
+		{
+			return;
+		}
+
+		if (!$this->params->get('showOnEdit', true))
+		{
+			return;
+		}
+
+		$user           = Factory::getContainer()->get(UserFactoryInterface::class)->loadUserById($userId);
+		$allowedUser    = !empty(array_intersect($user->getAuthorisedGroups(), $this->allowedTargetGroups));
+		$disallowedUser = !empty(array_intersect($user->getAuthorisedGroups(), $this->disallowedTargetGroups));
+
+		if (!$allowedUser || $disallowedUser)
+		{
+			return;
+		}
+
+		// Add our custom JavaScript
+		$document = $this->app->getDocument();
+		$wam      = $document->getWebAssetManager();
+
+		$wam->getRegistry()->addExtensionRegistryFile('plg_system_skeletonkey');
+		$document->addScriptOptions('plg_system_skeletonkey', []);
+		$wam->useScript('plg_system_skeletonkey.backend');
+		$this->loadLanguage();
+
+		Text::script('PLG_SYSTEM_SKELETONKEY_BTN_LABEL');
+		Text::script('PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED');
+		Text::script('PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED_AJAX');
+
+		$toolbar = method_exists(Toolbar::class, 'getInstance')
+			? Toolbar::getInstance('toolbar')
+			: Factory::getContainer()->get(ToolbarFactoryInterface::class)->createToolbar('toolbar');
+
+		$toolbar->linkButton('skeletonkey', 'PLG_SYSTEM_SKELETONKEY_BTN_LABEL')
+		        ->icon('fa-key')
+		        ->url('#')
+		        ->attributes([
+			        'class'       => 'skeletonkey',
+			        'data-userid' => $userId,
+		        ]);
+
+		$tbItems = $toolbar->getItems();
+		$temp0 = array_pop($tbItems);
+		$temp1 = array_pop($tbItems);
+		$tbItems[] = $temp0;
+		$tbItems[] = $temp1;
+		$toolbar->setItems($tbItems);
 	}
 
 	/**
@@ -112,24 +193,16 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 	 * @since        1.0.0
 	 * @noinspection PhpUnused
 	 */
-	public function onBeforeDisplay(Event $event)
+	public function onBeforeDisplay(Event $event): void
 	{
-		// Make sure this is the backend.
-		if (!($this->app instanceof CMSApplication) || !$this->app->isClient('administrator'))
-		{
-			return;
-		}
-
-		// Make sure the current user is allowed to log into the site as another user.
-		$currentUser = $this->app->getIdentity();
-
-		if (!($currentUser instanceof User) || empty(array_intersect($currentUser->getAuthorisedGroups(), $this->allowedControlGroups)))
+		// Make sure the current user can use SkeletonKey
+		if (!$this->canUseSkeletonKey())
 		{
 			return;
 		}
 
 		// Make sure this is a valid event
-		if (!($event instanceof DisplayEvent))
+		if (!$event instanceof DisplayEvent)
 		{
 			return;
 		}
@@ -142,18 +215,19 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		 */
 		$view = $event->getArgument('subject');
 
-		if (!($view instanceof UsersHtmlView))
+		if (!$view instanceof UsersHtmlView)
 		{
 			return;
 		}
 
 		// Make sure the authentication plugin is enabled. If not, warn the user.
-		if (!PluginHelper::isEnabled('authentication', 'skeletonkey'))
+		if (!$this->isAuthPluginEnabled())
 		{
-			$this->loadLanguage();
+			return;
+		}
 
-			$this->app->enqueueMessage(Text::_('PLG_SYSTEM_SKELETONKEY_LBL_NOAUTHPLUGIN'), CMSApplication::MSG_ERROR);
-
+		if (!$this->params->get('showOnList', true))
+		{
 			return;
 		}
 
@@ -202,7 +276,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 	 * @since        1.0.0
 	 * @noinspection PhpUnused
 	 */
-	public function onAfterInitialise(Event $event)
+	public function onAfterInitialise(Event $event): void
 	{
 		// Skeleton key only works in the frontend
 		if (!$this->app->isClient('site'))
@@ -234,7 +308,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 	 * @return  void
 	 * @since   1.0.0
 	 */
-	public function onAjaxSkeletonkey(Event $event)
+	public function onAjaxSkeletonkey(Event $event): void
 	{
 		// Anti-CSRF token check
 		if (!Session::checkToken('get'))
@@ -306,6 +380,46 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		$this->addEventResult($event, $createdCookie);
 	}
 
+	private function isAuthPluginEnabled(): bool
+	{
+		// Make sure the authentication plugin is enabled. If not, warn the user.
+		if (PluginHelper::isEnabled('authentication', 'skeletonkey'))
+		{
+			return true;
+		}
+
+		$this->loadLanguage();
+
+		$this->app->enqueueMessage(Text::_('PLG_SYSTEM_SKELETONKEY_LBL_NOAUTHPLUGIN'), CMSApplication::MSG_ERROR);
+
+		return false;
+	}
+
+	/**
+	 * Determines if the current user can use SkeletonKey to log in as another user.
+	 *
+	 * @return  bool
+	 * @since   1.2.0
+	 */
+	private function canUseSkeletonKey(): bool
+	{
+		// Make sure this is the backend.
+		if (!($this->app instanceof CMSApplication) || !$this->app->isClient('administrator'))
+		{
+			return false;
+		}
+
+		// Make sure the current user is allowed to log into the site as another user.
+		$currentUser = $this->app->getIdentity();
+
+		if (!($currentUser instanceof User) || empty(array_intersect($currentUser->getAuthorisedGroups(), $this->allowedControlGroups)))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
 	/**
 	 * Creates a cookie for logging in the specified user ID
 	 *
@@ -336,10 +450,10 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		{
 			$series = UserHelper::genRandomPassword(20);
 			$query  = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
-			                   ->select($this->db->quoteName('series'))
-			                   ->from($this->db->quoteName('#__user_keys'))
-			                   ->where($this->db->quoteName('series') . ' = :series')
-			                   ->bind(':series', $series);
+				->select($this->db->quoteName('series'))
+				->from($this->db->quoteName('#__user_keys'))
+				->where($this->db->quoteName('series') . ' = :series')
+				->bind(':series', $series);
 
 			try
 			{
