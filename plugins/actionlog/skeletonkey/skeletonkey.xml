@@ -12,8 +12,8 @@
 	<authorUrl>https://www.akeeba.com</authorUrl>
 	<copyright>Copyright (c)2022-2025 Nicholas K. Dionysopoulos</copyright>
 	<license>GNU GPL v3 or later</license>
-	<creationDate>2024-12-15</creationDate>
-	<version>1.1.0</version>
+	<creationDate>2025-07-04</creationDate>
+	<version>1.2.0</version>
 	<description>PLG_ACTIONLOG_SKELETONKEY_XML_DESCRIPTION</description>
 	<namespace path="src">Akeeba\Plugin\ActionLog\SkeletonKey</namespace>
 
