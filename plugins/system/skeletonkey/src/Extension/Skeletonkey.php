@@ -219,7 +219,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		// If the cookie is set try to log in the user using it
 		$cookieName = self::COOKIE_PREFIX . $this->getHashedUserAgent();
 
-		if ($this->app->input->cookie->get($cookieName))
+		if ($this->app->getInput()->cookie->get($cookieName))
 		{
 
 			$this->app->login(['username' => ''], ['silent' => true]);
@@ -272,7 +272,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 
 		// Make sure the requested user exists
 		/** @var User $user */
-		$userId = $this->app->input->get->getInt('user_id');
+		$userId = $this->app->getInput()->get->getInt('user_id');
 		$user   = Factory::getContainer()->get(UserFactoryInterface::class)->loadUserById($userId);
 
 		if ($user->id <= 0 || $user->id != $userId)
@@ -396,7 +396,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		}
 
 		// Set the cookie
-		$this->app->input->cookie->set(
+		$this->app->getInput()->cookie->set(
 			$cookieName,
 			$cookieValue,
 			$future,

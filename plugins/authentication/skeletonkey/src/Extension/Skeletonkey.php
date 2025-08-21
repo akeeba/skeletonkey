@@ -90,7 +90,7 @@ class Skeletonkey extends CMSPlugin
 
 		// Get the cookie. If it does not exist, give up.
 		$cookieName  = self::COOKIE_PREFIX . $this->getHashedUserAgent();
-		$cookieValue = $this->app->input->cookie->get($cookieName);
+		$cookieValue = $this->app->getInput()->cookie->get($cookieName);
 
 		if (!$cookieValue)
 		{
@@ -265,7 +265,7 @@ class Skeletonkey extends CMSPlugin
 		}
 
 		$cookieName  = self::COOKIE_PREFIX . $this->getHashedUserAgent();
-		$cookieValue = $this->app->input->cookie->get($cookieName);
+		$cookieValue = $this->app->getInput()->cookie->get($cookieName);
 
 		// There are no cookies to delete.
 		if (!$cookieValue)
@@ -295,7 +295,7 @@ class Skeletonkey extends CMSPlugin
 		}
 
 		// Destroy the cookie
-		$this->app->input->cookie->set($cookieName, '', 1, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
+		$this->app->getInput()->cookie->set($cookieName, '', 1, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
 	}
 
 	/**
