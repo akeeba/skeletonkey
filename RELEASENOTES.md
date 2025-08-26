@@ -1,1 +1,1 @@
-This is a bugfix release.
+**Preliminary support for Joomla 6**. This version comes with <strong>preliminary</strong> compatibility with Joomla! 6. At the time of this writing, Joomla 6.0.0 Beta 1 has been released. That's our compatibility target. We expect more changes to take place before Joomla! 6 stable is released, with an as yet unknown impact on compatibility. We will keep following Joomla 6 development and adapting our software as necessary.
