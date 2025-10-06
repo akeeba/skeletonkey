@@ -160,7 +160,11 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		// Find the displayed users and tell the frontend JS which users should get login buttons
 		$refObject = new \ReflectionObject($view);
 		$refProp   = $refObject->getProperty('items');
-		$refProp->setAccessible(true);
+
+		if (version_compare(PHP_VERSION, '8.1.0', 'lt'))
+		{
+			$refProp->setAccessible(true);
+		}
 
 		$items      = $refProp->getValue($view);
 		$loginUsers = [];
@@ -336,10 +340,10 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		{
 			$series = UserHelper::genRandomPassword(20);
 			$query  = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
-			                   ->select($this->db->quoteName('series'))
-			                   ->from($this->db->quoteName('#__user_keys'))
-			                   ->where($this->db->quoteName('series') . ' = :series')
-			                   ->bind(':series', $series);
+				->select($this->db->quoteName('series'))
+				->from($this->db->quoteName('#__user_keys'))
+				->where($this->db->quoteName('series') . ' = :series')
+				->bind(':series', $series);
 
 			try
 			{

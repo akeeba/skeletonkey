@@ -1,3 +1,7 @@
+Skeleton Key 1.2.2
+================================================================================
+~ PHP 8.5 compatibility: setAccessible is deprecated for reflection objects
+
 Skeleton Key 1.2.1
 ================================================================================
 ~ Preliminary support for Joomla 6
