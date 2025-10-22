@@ -1,6 +1,7 @@
 Skeleton Key 1.2.2
 ================================================================================
 ~ PHP 8.5 compatibility: setAccessible is deprecated for reflection objects
+~ Joomla 5.4 and 6.0 compatibility: field UserGroupList renamed to usergrouplist (change of case)
 
 Skeleton Key 1.2.1
 ================================================================================

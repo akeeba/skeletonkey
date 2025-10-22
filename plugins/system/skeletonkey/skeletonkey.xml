@@ -40,7 +40,7 @@
         <fields name="params">
             <fieldset name="basic">
                 <field name="allowedControlGroups"
-                       type="UserGroupList"
+                       type="usergrouplist"
                        layout="joomla.form.field.list-fancy-select"
                        label="PLG_SYSTEM_SKELETONKEY_CONFIG_ALLOWEDCONTROLGROUPS_LABEL"
                        description="PLG_SYSTEM_SKELETONKEY_CONFIG_ALLOWEDCONTROLGROUPS_DESC"
@@ -53,7 +53,7 @@
                 />
 
                 <field name="allowedTargetGroups"
-                       type="UserGroupList"
+                       type="usergrouplist"
                        layout="joomla.form.field.list-fancy-select"
                        label="PLG_SYSTEM_SKELETONKEY_CONFIG_ALLOWEDTARGETGROUPS_LABEL"
                        description="PLG_SYSTEM_SKELETONKEY_CONFIG_ALLOWEDTARGETGROUPS_DESC"
@@ -66,7 +66,7 @@
                 />
 
                 <field name="disallowedTargetGroups"
-                       type="UserGroupList"
+                       type="usergrouplist"
                        layout="joomla.form.field.list-fancy-select"
                        label="PLG_SYSTEM_SKELETONKEY_CONFIG_DISALLOWEDTARGETGROUPS_LABEL"
                        description="PLG_SYSTEM_SKELETONKEY_CONFIG_DISALLOWEDTARGETGROUPS_DESC"
