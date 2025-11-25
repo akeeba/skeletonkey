@@ -1,1 +1,1 @@
-**Preliminary support for Joomla 6**. This version comes with <strong>preliminary</strong> compatibility with Joomla! 6.
+**Bugfix release** This version addresses bugs and makes minor improvements. Please consult the CHANGELOG.
