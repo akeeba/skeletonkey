@@ -12,8 +12,8 @@
     <authorUrl>https://www.akeeba.com</authorUrl>
     <copyright>Copyright (c)2022-2025 Nicholas K. Dionysopoulos</copyright>
     <license>GNU GPL v3 or later</license>
-    <creationDate>2025-09-26</creationDate>
-    <version>1.2.1</version>
+    <creationDate>2025-11-26</creationDate>
+    <version>1.2.2</version>
     <description>PLG_SYSTEM_SKELETONKEY_XML_DESCRIPTION</description>
     <namespace path="src">Joomla\Plugin\System\Skeletonkey</namespace>
 
