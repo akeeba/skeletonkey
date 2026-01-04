@@ -1,7 +1,7 @@
 <?php
 /*
  * @package   Skeletonkey
- * @copyright Copyright (c)2022-2025 Nicholas K. Dionysopoulos
+ * @copyright Copyright (c)2026 Nicholas K. Dionysopoulos
  * @license   GPLv3 or later
  */
 
