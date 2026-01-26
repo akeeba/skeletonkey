@@ -8,3 +8,4 @@ release/**
 vendor/**
 
 /pkg_skeletonkey.xml
+/.idea/laravel-idea.xml
