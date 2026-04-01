@@ -399,13 +399,37 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 			return false;
 		}
 
-		// Set the cookie
+		// Set the cookie. Takes into account Joomla 6 changes in Cookie::set().
+		$cookiePath   = $this->app->get('cookie_path', '/') ?: '/';
+		$cookieDomain = $this->app->get('cookie_domain', '');
+
+		// Joomla 6.x and later
+		if (version_compare(JVERSION, '5.999.999', 'gt'))
+		{
+			$this->app->getInput()->cookie->set(
+				$cookieName,
+				$cookieValue,
+				[
+					'expires'  => $future,
+					'path'     => $cookiePath,
+					'domain'   => $cookieDomain,
+					'secure'   => $this->app->isHttpsForced(),
+					'httponly' => true,
+					// Currently ignored in Joomla!. Added in hopes of future support...
+					'samesite' => 'Strict',
+				]
+			);
+
+			return true;
+		}
+
+		// Joomla 5.x support
 		$this->app->getInput()->cookie->set(
 			$cookieName,
 			$cookieValue,
 			$future,
-			$this->app->get('cookie_path', '/'),
-			$this->app->get('cookie_domain', ''),
+			$cookiePath,
+			$cookieDomain,
 			$this->app->isHttpsForced(),
 			true
 		);

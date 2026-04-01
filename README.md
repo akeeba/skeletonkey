@@ -6,8 +6,8 @@ Allows Joomla!™ administrator to log in as any other user.
 
 ## Requirements
 
-* Joomla 4.0 or 4.1
-* PHP 7.2, 7.3, 7.4, 8.0 or 8.1
+* Joomla 5.4, 6.0, or 6.1.
+* PHP 8.1, 8.2, 8.3, 8.4, or 8.5.
 
 ## Use case
 

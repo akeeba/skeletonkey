@@ -294,8 +294,31 @@ class Skeletonkey extends CMSPlugin
 			// We aren't concerned with errors from this query, carry on
 		}
 
-		// Destroy the cookie
-		$this->app->getInput()->cookie->set($cookieName, '', 1, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
+		// Destroy the cookie. Takes into account Joomla 6 changes in Cookie::set().
+		$cookiePath   = $this->app->get('cookie_path', '/') ?: '/';
+		$cookieDomain = $this->app->get('cookie_domain', '');
+
+		if (!version_compare(JVERSION, '5.999.999', 'le'))
+		{
+			$this->app->getInput()->cookie->set(
+				$cookieName,
+				'',
+				[
+					'expires'  => 1,
+					'path'     => $cookiePath,
+					'domain'   => $cookieDomain,
+					'secure'   => $this->app->isHttpsForced(),
+					'httponly' => true,
+					// Currently ignored in Joomla!. Added in hopes of future support...
+					'samesite' => 'Strict',
+				]
+			);
+
+			return;
+		}
+
+		// Joomla 5.x support.
+		$this->app->getInput()->cookie->set($cookieName, '', 1, $cookiePath, $cookieDomain);
 	}
 
 	/**

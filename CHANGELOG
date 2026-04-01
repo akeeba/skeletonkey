@@ -1,3 +1,7 @@
+Skeleton Key 1.2.3
+================================================================================
+# [HIGH] Wouldn't work on Joomla 6 without the backwards compatibility plugin enabled
+
 Skeleton Key 1.2.2
 ================================================================================
 ~ PHP 8.5 compatibility: setAccessible is deprecated for reflection objects
