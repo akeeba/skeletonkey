@@ -48,7 +48,9 @@ class SkeletonKey extends ActionLogPlugin implements SubscriberInterface
 		 * @var  User $user          The user to be logged in as
 		 * @var  bool $createdCookie Was the login cookie created?
 		 */
-		[$currentUser, $user, $createdCookie] = array_values($event->getArguments());
+		$currentUser   = $event->getArgument('controlUser');
+		$user          = $event->getArgument('targetUser');
+		$createdCookie = $event->getArgument('createdCookie');
 
 		// The data to store for this record
 		$data = [
