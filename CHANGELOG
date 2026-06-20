@@ -1,3 +1,10 @@
+Skeleton Key 1.2.4
+================================================================================
+~ Joomla 7 compatibility: plugins no longer rely on the removed automatic $app/$db population; application and database are injected through the service providers
+~ Joomla 7 compatibility: the authentication plugin now uses SubscriberInterface and handles the AuthenticationEvent object directly (gated by Joomla version)
+~ Joomla 7 compatibility: the onSkeletonKeyRequestLogin event now passes named arguments
+  Minimum requirement raised to Joomla 4.4.
+
 Skeleton Key 1.2.3
 ================================================================================
 # [HIGH] Wouldn't work on Joomla 6 without the backwards compatibility plugin enabled

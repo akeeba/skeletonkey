@@ -1,3 +1,3 @@
-**Joomla 6 compatibility fix.** Skeleton Key would fail silently on Joomla 6 sites unless the Joomla backwards compatibility plugin was enabled. This release fixes the underlying incompatibility so the extension works correctly on Joomla 6 with or without the BC plugin.
+**Joomla 7 compatibility.** Skeleton Key now runs on Joomla 7 without relying on the backwards compatibility plugin. The three plugins no longer depend on Joomla's removed automatic `$app`/`$db` population (application and database are now injected through the service providers), and the authentication plugin uses `SubscriberInterface` and the `AuthenticationEvent` object directly, gated by Joomla version so Joomla 4.4, 5 and 6 keep working exactly as before.
 
-If you are running Joomla 6, this update is strongly recommended.
+The minimum requirement is now Joomla 4.4.

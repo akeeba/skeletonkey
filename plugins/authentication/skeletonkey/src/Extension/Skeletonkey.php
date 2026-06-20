@@ -9,9 +9,7 @@ namespace Joomla\Plugin\Authentication\Skeletonkey\Extension;
 
 defined('_JEXEC') || die;
 
-use Joomla\Application\ApplicationInterface;
 use Joomla\CMS\Application\ApplicationHelper;
-use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Authentication\Authentication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
@@ -21,39 +19,41 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\User\UserFactoryInterface;
 use Joomla\CMS\User\UserHelper;
-use Joomla\Database\DatabaseDriver;
+use Joomla\Database\DatabaseAwareInterface;
+use Joomla\Database\DatabaseAwareTrait;
+use Joomla\Event\Event;
+use Joomla\Event\SubscriberInterface;
 use Joomla\Filter\InputFilter;
 use RuntimeException;
 
-class Skeletonkey extends CMSPlugin
+class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwareInterface
 {
+	use DatabaseAwareTrait;
+
 	private const COOKIE_PREFIX = "skeletonkey_";
 
 	/**
-	 * The application I am running under
-	 *
-	 * @var   ApplicationInterface|CMSApplication
-	 * @since 1.0.0
+	 * @inheritDoc
 	 */
-	protected $app;
-
-	/**
-	 * @var   DatabaseDriver
-	 * @since 1.0.0
-	 */
-	protected $db;
+	public static function getSubscribedEvents(): array
+	{
+		return [
+			'onUserAuthenticate' => 'onUserAuthenticate',
+			'onUserAfterLogout'  => 'onUserAfterLogout',
+		];
+	}
 
 	/**
 	 * Destroy any possible leftover cookie on logout
 	 *
-	 * @param   array  $options  Array holding options (length, timeToExpiration)
+	 * @param   Event  $event  The onUserAfterLogout event
 	 *
 	 * @return  boolean  True on success
 	 *
 	 * @noinspection PhpUnused
 	 * @since        1.0.0
 	 */
-	public function onUserAfterLogout(array $options): bool
+	public function onUserAfterLogout(Event $event): bool
 	{
 		$this->destroyCookie();
 
@@ -63,19 +63,33 @@ class Skeletonkey extends CMSPlugin
 	/**
 	 * Handles authentication with Skeleton Key
 	 *
-	 * @param   array    $credentials  Array holding the user credentials
-	 * @param   array    $options      Array of extra options
-	 * @param   object  &$response     Authentication response object
+	 * @param   Event  $event  The onUserAuthenticate event
 	 *
 	 * @return  bool  True on successful authentication
 	 * @since   1.0.0
 	 *
 	 * @noinspection PhpUnused
 	 */
-	public function onUserAuthenticate(array $credentials, array $options, object &$response): bool
+	public function onUserAuthenticate(Event $event): bool
 	{
+		/**
+		 * Joomla 7 dispatches a concrete AuthenticationEvent which exposes the authentication response
+		 * through a typed getter. Joomla 4, 5 and 6 pass the response object as the event's 'subject'
+		 * argument. Either way it is the same object the Authentication helper reads back, so mutating
+		 * its properties below propagates the result.
+		 */
+		if (version_compare(JVERSION, '6.999.999', 'gt'))
+		{
+			/** @var \Joomla\CMS\Event\User\AuthenticationEvent $event */
+			$response = $event->getAuthenticationResponse();
+		}
+		else
+		{
+			$response = $event->getArgument('subject');
+		}
+
 		// Skeleton key only works in the frontend
-		if (!$this->app->isClient('site'))
+		if (!$this->getApplication()->isClient('site'))
 		{
 			return false;
 		}
@@ -90,7 +104,7 @@ class Skeletonkey extends CMSPlugin
 
 		// Get the cookie. If it does not exist, give up.
 		$cookieName  = self::COOKIE_PREFIX . $this->getHashedUserAgent();
-		$cookieValue = $this->app->getInput()->cookie->get($cookieName);
+		$cookieValue = $this->getApplication()->getInput()->cookie->get($cookieName);
 
 		if (!$cookieValue)
 		{
@@ -118,14 +132,14 @@ class Skeletonkey extends CMSPlugin
 		$now    = time();
 
 		// Remove expired tokens
-		$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
-		                  ->delete($this->db->quoteName('#__user_keys'))
-		                  ->where($this->db->quoteName('time') . ' < :now')
+		$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
+		                  ->delete($this->getDatabase()->quoteName('#__user_keys'))
+		                  ->where($this->getDatabase()->quoteName('time') . ' < :now')
 		                  ->bind(':now', $now);
 
 		try
 		{
-			$this->db->setQuery($query)->execute();
+			$this->getDatabase()->setQuery($query)->execute();
 		}
 		catch (RuntimeException $e)
 		{
@@ -133,18 +147,18 @@ class Skeletonkey extends CMSPlugin
 		}
 
 		// Find the matching record if it exists.
-		$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
-		                  ->select($this->db->quoteName(['user_id', 'token', 'series', 'time']))
-		                  ->from($this->db->quoteName('#__user_keys'))
-		                  ->where($this->db->quoteName('series') . ' = :series')
-		                  ->where($this->db->quoteName('uastring') . ' = :uastring')
-		                  ->order($this->db->quoteName('time') . ' DESC')
+		$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
+		                  ->select($this->getDatabase()->quoteName(['user_id', 'token', 'series', 'time']))
+		                  ->from($this->getDatabase()->quoteName('#__user_keys'))
+		                  ->where($this->getDatabase()->quoteName('series') . ' = :series')
+		                  ->where($this->getDatabase()->quoteName('uastring') . ' = :uastring')
+		                  ->order($this->getDatabase()->quoteName('time') . ' DESC')
 		                  ->bind(':series', $series)
 		                  ->bind(':uastring', $cookieName);
 
 		try
 		{
-			$results = $this->db->setQuery($query)->loadObjectList();
+			$results = $this->getDatabase()->setQuery($query)->loadObjectList();
 		}
 		catch (RuntimeException $e)
 		{
@@ -172,14 +186,14 @@ class Skeletonkey extends CMSPlugin
 			 * Either the series was guessed correctly or a cookie was stolen and used twice (once by attacker and once by victim).
 			 * Delete all tokens for this user!
 			 */
-			$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
-			                  ->delete($this->db->quoteName('#__user_keys'))
-			                  ->where($this->db->quoteName('user_id') . ' = :userid')
+			$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
+			                  ->delete($this->getDatabase()->quoteName('#__user_keys'))
+			                  ->where($this->getDatabase()->quoteName('user_id') . ' = :userid')
 			                  ->bind(':userid', $results[0]->user_id);
 
 			try
 			{
-				$this->db->setQuery($query)->execute();
+				$this->getDatabase()->setQuery($query)->execute();
 			}
 			catch (RuntimeException $e)
 			{
@@ -202,16 +216,16 @@ class Skeletonkey extends CMSPlugin
 		}
 
 		// Make sure there really is a user with this name and get the data for the session.
-		$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
-		                  ->select($this->db->quoteName(['id', 'username', 'password']))
-		                  ->from($this->db->quoteName('#__users'))
-		                  ->where($this->db->quoteName('username') . ' = :userid')
-		                  ->where($this->db->quoteName('requireReset') . ' = 0')
+		$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
+		                  ->select($this->getDatabase()->quoteName(['id', 'username', 'password']))
+		                  ->from($this->getDatabase()->quoteName('#__users'))
+		                  ->where($this->getDatabase()->quoteName('username') . ' = :userid')
+		                  ->where($this->getDatabase()->quoteName('requireReset') . ' = 0')
 		                  ->bind(':userid', $results[0]->user_id);
 
 		try
 		{
-			$result = $this->db->setQuery($query)->loadObject();
+			$result = $this->getDatabase()->setQuery($query)->loadObject();
 		}
 		catch (RuntimeException $e)
 		{
@@ -259,13 +273,13 @@ class Skeletonkey extends CMSPlugin
 	private function destroyCookie()
 	{
 		// Skeleton key only works in the frontend
-		if (!$this->app->isClient('site'))
+		if (!$this->getApplication()->isClient('site'))
 		{
 			return;
 		}
 
 		$cookieName  = self::COOKIE_PREFIX . $this->getHashedUserAgent();
-		$cookieValue = $this->app->getInput()->cookie->get($cookieName);
+		$cookieValue = $this->getApplication()->getInput()->cookie->get($cookieName);
 
 		// There are no cookies to delete.
 		if (!$cookieValue)
@@ -280,14 +294,14 @@ class Skeletonkey extends CMSPlugin
 		$series = $filter->clean($cookieArray[1], 'ALNUM');
 
 		// Remove the record from the database
-		$query = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
-		                  ->delete($this->db->quoteName('#__user_keys'))
-		                  ->where($this->db->quoteName('series') . ' = :series')
+		$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
+		                  ->delete($this->getDatabase()->quoteName('#__user_keys'))
+		                  ->where($this->getDatabase()->quoteName('series') . ' = :series')
 		                  ->bind(':series', $series);
 
 		try
 		{
-			$this->db->setQuery($query)->execute();
+			$this->getDatabase()->setQuery($query)->execute();
 		}
 		catch (RuntimeException $e)
 		{
@@ -295,19 +309,19 @@ class Skeletonkey extends CMSPlugin
 		}
 
 		// Destroy the cookie. Takes into account Joomla 6 changes in Cookie::set().
-		$cookiePath   = $this->app->get('cookie_path', '/') ?: '/';
-		$cookieDomain = $this->app->get('cookie_domain', '');
+		$cookiePath   = $this->getApplication()->get('cookie_path', '/') ?: '/';
+		$cookieDomain = $this->getApplication()->get('cookie_domain', '');
 
 		if (!version_compare(JVERSION, '5.999.999', 'le'))
 		{
-			$this->app->getInput()->cookie->set(
+			$this->getApplication()->getInput()->cookie->set(
 				$cookieName,
 				'',
 				[
 					'expires'  => 1,
 					'path'     => $cookiePath,
 					'domain'   => $cookieDomain,
-					'secure'   => $this->app->isHttpsForced(),
+					'secure'   => $this->getApplication()->isHttpsForced(),
 					'httponly' => true,
 					// Currently ignored in Joomla!. Added in hopes of future support...
 					'samesite' => 'Strict',
@@ -318,7 +332,7 @@ class Skeletonkey extends CMSPlugin
 		}
 
 		// Joomla 5.x support.
-		$this->app->getInput()->cookie->set($cookieName, '', 1, $cookiePath, $cookieDomain);
+		$this->getApplication()->getInput()->cookie->set($cookieName, '', 1, $cookiePath, $cookieDomain);
 	}
 
 	/**
@@ -330,7 +344,7 @@ class Skeletonkey extends CMSPlugin
 	 */
 	private function getHashedUserAgent(): string
 	{
-		return ApplicationHelper::getHash(Uri::root() . $this->app->client->userAgent);
+		return ApplicationHelper::getHash(Uri::root() . $this->getApplication()->client->userAgent);
 	}
 
 }

@@ -9,7 +9,6 @@ namespace Joomla\Plugin\System\Skeletonkey\Extension;
 
 defined('_JEXEC') || die;
 
-use Joomla\Application\ApplicationInterface;
 use Joomla\CMS\Application\ApplicationHelper;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Event\View\DisplayEvent;
@@ -23,7 +22,8 @@ use Joomla\CMS\User\User;
 use Joomla\CMS\User\UserFactoryInterface;
 use Joomla\CMS\User\UserHelper;
 use Joomla\Component\Users\Administrator\View\Users\HtmlView as UsersHtmlView;
-use Joomla\Database\DatabaseDriver;
+use Joomla\Database\DatabaseAwareInterface;
+use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Database\ParameterType;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
@@ -31,23 +31,11 @@ use Joomla\Utilities\ArrayHelper;
 use RuntimeException;
 use Throwable;
 
-class Skeletonkey extends CMSPlugin implements SubscriberInterface
+class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwareInterface
 {
+	use DatabaseAwareTrait;
+
 	private const COOKIE_PREFIX = "skeletonkey_";
-
-	/**
-	 * The application I am running under
-	 *
-	 * @var   ApplicationInterface|CMSApplication
-	 * @since 1.0.0
-	 */
-	protected $app;
-
-	/**
-	 * @var    DatabaseDriver
-	 * @since  1.0.0
-	 */
-	protected $db;
 
 	/**
 	 * Affects constructor behavior. If true, language files will be loaded automatically.
@@ -115,13 +103,13 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 	public function onBeforeDisplay(Event $event)
 	{
 		// Make sure this is the backend.
-		if (!($this->app instanceof CMSApplication) || !$this->app->isClient('administrator'))
+		if (!($this->getApplication() instanceof CMSApplication) || !$this->getApplication()->isClient('administrator'))
 		{
 			return;
 		}
 
 		// Make sure the current user is allowed to log into the site as another user.
-		$currentUser = $this->app->getIdentity();
+		$currentUser = $this->getApplication()->getIdentity();
 
 		if (!($currentUser instanceof User) || empty(array_intersect($currentUser->getAuthorisedGroups(), $this->allowedControlGroups)))
 		{
@@ -152,7 +140,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		{
 			$this->loadLanguage();
 
-			$this->app->enqueueMessage(Text::_('PLG_SYSTEM_SKELETONKEY_LBL_NOAUTHPLUGIN'), CMSApplication::MSG_ERROR);
+			$this->getApplication()->enqueueMessage(Text::_('PLG_SYSTEM_SKELETONKEY_LBL_NOAUTHPLUGIN'), CMSApplication::MSG_ERROR);
 
 			return;
 		}
@@ -184,7 +172,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		}
 
 		// Add our custom JavaScript
-		$document = $this->app->getDocument();
+		$document = $this->getApplication()->getDocument();
 		$wam      = $document->getWebAssetManager();
 		$wam->getRegistry()->addExtensionRegistryFile('plg_system_skeletonkey');
 		$document->addScriptOptions('plg_system_skeletonkey', [
@@ -209,7 +197,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 	public function onAfterInitialise(Event $event)
 	{
 		// Skeleton key only works in the frontend
-		if (!$this->app->isClient('site'))
+		if (!$this->getApplication()->isClient('site'))
 		{
 			return;
 		}
@@ -223,10 +211,10 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		// If the cookie is set try to log in the user using it
 		$cookieName = self::COOKIE_PREFIX . $this->getHashedUserAgent();
 
-		if ($this->app->getInput()->cookie->get($cookieName))
+		if ($this->getApplication()->getInput()->cookie->get($cookieName))
 		{
 
-			$this->app->login(['username' => ''], ['silent' => true]);
+			$this->getApplication()->login(['username' => ''], ['silent' => true]);
 		}
 	}
 
@@ -249,7 +237,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		}
 
 		// Make sure this is the backend.
-		if (!($this->app instanceof CMSApplication) || !$this->app->isClient('administrator'))
+		if (!($this->getApplication() instanceof CMSApplication) || !$this->getApplication()->isClient('administrator'))
 		{
 			$this->addEventResult($event, false);
 
@@ -257,7 +245,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		}
 
 		// Make sure the current user is allowed to log into the site as another user.
-		$currentUser = $this->app->getIdentity();
+		$currentUser = $this->getApplication()->getIdentity();
 
 		if (!($currentUser instanceof User) || empty(array_intersect($currentUser->getAuthorisedGroups(), $this->allowedControlGroups)))
 		{
@@ -276,7 +264,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 
 		// Make sure the requested user exists
 		/** @var User $user */
-		$userId = $this->app->getInput()->get->getInt('user_id');
+		$userId = $this->getApplication()->getInput()->get->getInt('user_id');
 		$user   = Factory::getContainer()->get(UserFactoryInterface::class)->loadUserById($userId);
 
 		if ($user->id <= 0 || $user->id != $userId)
@@ -303,7 +291,11 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		// Trigger the Action Log plugin
 		$this->getDispatcher()->dispatch(
 			'onSkeletonKeyRequestLogin',
-			new Event('onSkeletonKeyRequestLogin', [$currentUser, $user, $createdCookie])
+			new Event('onSkeletonKeyRequestLogin', [
+				'controlUser'   => $currentUser,
+				'targetUser'    => $user,
+				'createdCookie' => $createdCookie,
+			])
 		);
 
 		// Return the event result back to com_ajax
@@ -339,15 +331,15 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		do
 		{
 			$series = UserHelper::genRandomPassword(20);
-			$query  = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true))
-				->select($this->db->quoteName('series'))
-				->from($this->db->quoteName('#__user_keys'))
-				->where($this->db->quoteName('series') . ' = :series')
+			$query  = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
+				->select($this->getDatabase()->quoteName('series'))
+				->from($this->getDatabase()->quoteName('#__user_keys'))
+				->where($this->getDatabase()->quoteName('series') . ' = :series')
 				->bind(':series', $series);
 
 			try
 			{
-				$results = $this->db->setQuery($query)->loadResult();
+				$results = $this->getDatabase()->setQuery($query)->loadResult();
 
 				if ($results === null)
 				{
@@ -379,20 +371,20 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		try
 		{
 			$future = (time() + $lifetime);
-			$query  = (method_exists($this->db, 'createQuery') ? $this->db->createQuery() : $this->db->getQuery(true));
+			$query  = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true));
 			$query
-				->insert($this->db->quoteName('#__user_keys'))
-				->set($this->db->quoteName('user_id') . ' = :userid')
-				->set($this->db->quoteName('series') . ' = :series')
-				->set($this->db->quoteName('uastring') . ' = :uastring')
-				->set($this->db->quoteName('time') . ' = :time')
-				->set($this->db->quoteName('token') . ' = :token')
+				->insert($this->getDatabase()->quoteName('#__user_keys'))
+				->set($this->getDatabase()->quoteName('user_id') . ' = :userid')
+				->set($this->getDatabase()->quoteName('series') . ' = :series')
+				->set($this->getDatabase()->quoteName('uastring') . ' = :uastring')
+				->set($this->getDatabase()->quoteName('time') . ' = :time')
+				->set($this->getDatabase()->quoteName('token') . ' = :token')
 				->bind(':userid', $user->username)
 				->bind(':series', $series)
 				->bind(':uastring', $cookieName)
 				->bind(':time', $future, ParameterType::INTEGER)
 				->bind(':token', $hashedToken);
-			$this->db->setQuery($query)->execute();
+			$this->getDatabase()->setQuery($query)->execute();
 		}
 		catch (RuntimeException $e)
 		{
@@ -400,20 +392,20 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		}
 
 		// Set the cookie. Takes into account Joomla 6 changes in Cookie::set().
-		$cookiePath   = $this->app->get('cookie_path', '/') ?: '/';
-		$cookieDomain = $this->app->get('cookie_domain', '');
+		$cookiePath   = $this->getApplication()->get('cookie_path', '/') ?: '/';
+		$cookieDomain = $this->getApplication()->get('cookie_domain', '');
 
 		// Joomla 6.x and later
 		if (version_compare(JVERSION, '5.999.999', 'gt'))
 		{
-			$this->app->getInput()->cookie->set(
+			$this->getApplication()->getInput()->cookie->set(
 				$cookieName,
 				$cookieValue,
 				[
 					'expires'  => $future,
 					'path'     => $cookiePath,
 					'domain'   => $cookieDomain,
-					'secure'   => $this->app->isHttpsForced(),
+					'secure'   => $this->getApplication()->isHttpsForced(),
 					'httponly' => true,
 					// Currently ignored in Joomla!. Added in hopes of future support...
 					'samesite' => 'Strict',
@@ -424,13 +416,13 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 		}
 
 		// Joomla 5.x support
-		$this->app->getInput()->cookie->set(
+		$this->getApplication()->getInput()->cookie->set(
 			$cookieName,
 			$cookieValue,
 			$future,
 			$cookiePath,
 			$cookieDomain,
-			$this->app->isHttpsForced(),
+			$this->getApplication()->isHttpsForced(),
 			true
 		);
 
@@ -482,7 +474,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface
 	 */
 	private function getHashedUserAgent(): string
 	{
-		return ApplicationHelper::getHash(Uri::root() . $this->app->client->userAgent);
+		return ApplicationHelper::getHash(Uri::root() . $this->getApplication()->client->userAgent);
 	}
 
 	/**
