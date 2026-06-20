@@ -10,6 +10,7 @@ defined('_JEXEC') || die;
 use Joomla\CMS\Extension\PluginInterface;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\Database\DatabaseAwareInterface;
 use Joomla\Database\DatabaseInterface;
 use Joomla\DI\Container;
 use Joomla\DI\ServiceProviderInterface;
@@ -31,13 +32,18 @@ return new class implements ServiceProviderInterface {
 		$container->set(
 			PluginInterface::class,
 			function (Container $container) {
-				$config  = (array) PluginHelper::getPlugin('authentication', 'skeletonkey');
-				$subject = $container->get(DispatcherInterface::class);
-
-				$plugin = new Skeletonkey($subject, $config);
+				$config     = (array) PluginHelper::getPlugin('authentication', 'skeletonkey');
+				$dispatcher = $container->get(DispatcherInterface::class);
+				$plugin     = version_compare(JVERSION, '5.4.0', 'ge')
+					? new Skeletonkey($config)
+					: new Skeletonkey($dispatcher, $config);
 
 				$plugin->setApplication(Factory::getApplication());
-				$plugin->setDatabase($container->get(DatabaseInterface::class));
+
+				if ($plugin instanceof DatabaseAwareInterface)
+				{
+					$plugin->setDatabase($container->get(DatabaseInterface::class));
+				}
 
 				return $plugin;
 			}

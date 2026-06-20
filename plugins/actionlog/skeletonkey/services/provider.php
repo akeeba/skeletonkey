@@ -9,6 +9,7 @@ use Akeeba\Plugin\ActionLog\SkeletonKey\Extension\SkeletonKey;
 use Joomla\CMS\Extension\PluginInterface;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\Database\DatabaseAwareInterface;
 use Joomla\Database\DatabaseInterface;
 use Joomla\DI\Container;
 use Joomla\DI\ServiceProviderInterface;
@@ -31,13 +32,20 @@ return new class implements ServiceProviderInterface {
 		$container->set(
 			PluginInterface::class,
 			function (Container $container) {
-				$subject = $container->get(DispatcherInterface::class);
-				$config  = (array) PluginHelper::getPlugin('actionlog', 'skeletonkey');
-
-				$plugin = new SkeletonKey($subject, $config);
+				$config     = (array) PluginHelper::getPlugin('actionlog', 'skeletonkey');
+				$dispatcher = $container->get(DispatcherInterface::class);
+				$plugin     = version_compare(JVERSION, '5.4.0', 'ge')
+					? new SkeletonKey($config)
+					: new SkeletonKey(
+						$dispatcher, $config
+					);
 
 				$plugin->setApplication(Factory::getApplication());
-				$plugin->setDatabase($container->get(DatabaseInterface::class));
+
+				if ($plugin instanceof DatabaseAwareInterface)
+				{
+					$plugin->setDatabase($container->get(DatabaseInterface::class));
+				}
 
 				return $plugin;
 			}
