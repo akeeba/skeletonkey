@@ -9,19 +9,18 @@
         <name>Skeleton Key</name>
         <element>pkg_skeletonkey</element>
         <type>package</type>
-        <version>1.2.4</version>
-        <infourl title="Skeleton Key 1.2.4">https://github.com/akeeba/skeletonkey/releases/tag/1.2.4</infourl>
+        <version>1.2.3</version>
+        <infourl title="Skeleton Key 1.2.3">https://github.com/akeeba/skeletonkey/releases/tag/1.2.3</infourl>
         <downloads>
             <downloadurl type="full" format="zip">
-                https://github.com/akeeba/skeletonkey/releases/download/1.2.4/pkg_skeletonkey-1.2.4.zip
+                https://github.com/akeeba/skeletonkey/releases/download/1.2.3/pkg_skeletonkey-1.2.3.zip
             </downloadurl>
         </downloads>
         <tags>
             <tag>stable</tag>
         </tags>
-        <targetplatform name="joomla" version="4.[4-9]|5.[0-9]|6.[0-9]|7.0"/>
-        <!-- TODO: replace with the real package checksum when the 1.2.4 release ZIP is built -->
-        <sha256>0000000000000000000000000000000000000000000000000000000000000000</sha256>
+        <targetplatform name="joomla" version="4.[4-9]|5.[0-9]|6.[0-9]"/>
+        <sha512>35a2360a57d02aa26446a668c2cb3cfa0808952fa49e33f686d8274b372cdbc820b91a02ce17e861777db69c2fbf1359204a11bd881ab5f3ba5892459f7c0c5d</sha512>
         <client>site</client>
         <php_minimum>7.2</php_minimum>
     </update>
