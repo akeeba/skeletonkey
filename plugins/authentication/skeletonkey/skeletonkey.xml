@@ -38,4 +38,6 @@
         <language tag="pt-PT">pt-PT/plg_authentication_skeletonkey.ini</language>
         <language tag="pt-PT">pt-PT/plg_authentication_skeletonkey.sys.ini</language>
     </languages>
+
+    <scriptfile>script.plg_authentication_skeletonkey.php</scriptfile>
 </extension>

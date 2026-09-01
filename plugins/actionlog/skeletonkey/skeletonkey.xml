@@ -39,4 +39,5 @@
 		<language tag="pt-PT">pt-PT/plg_actionlog_skeletonkey.sys.ini</language>
 	</languages>
 
+	<scriptfile>script.plg_actionlog_skeletonkey.php</scriptfile>
 </extension>

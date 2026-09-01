@@ -13,7 +13,6 @@ use Joomla\Database\DatabaseAwareInterface;
 use Joomla\Database\DatabaseInterface;
 use Joomla\DI\Container;
 use Joomla\DI\ServiceProviderInterface;
-use Joomla\Event\DispatcherInterface;
 
 defined('_JEXEC') || die;
 
@@ -32,13 +31,8 @@ return new class implements ServiceProviderInterface {
 		$container->set(
 			PluginInterface::class,
 			function (Container $container) {
-				$config     = (array) PluginHelper::getPlugin('actionlog', 'skeletonkey');
-				$dispatcher = $container->get(DispatcherInterface::class);
-				$plugin     = version_compare(JVERSION, '5.4.0', 'ge')
-					? new SkeletonKey($config)
-					: new SkeletonKey(
-						$dispatcher, $config
-					);
+				$config = (array) PluginHelper::getPlugin('actionlog', 'skeletonkey');
+				$plugin = new SkeletonKey($config);
 
 				$plugin->setApplication(Factory::getApplication());
 

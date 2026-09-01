@@ -130,4 +130,6 @@
             </fieldset>
         </fields>
     </config>
+
+    <scriptfile>script.plg_system_skeletonkey.php</scriptfile>
 </extension>

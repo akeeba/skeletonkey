@@ -148,13 +148,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 
 		// Find the displayed users and tell the frontend JS which users should get login buttons
 		$refObject = new \ReflectionObject($view);
-		$refProp   = $refObject->getProperty('items');
-
-		if (version_compare(PHP_VERSION, '8.1.0', 'lt'))
-		{
-			$refProp->setAccessible(true);
-		}
-
+		$refProp    = $refObject->getProperty('items');
 		$items      = $refProp->getValue($view);
 		$loginUsers = [];
 
