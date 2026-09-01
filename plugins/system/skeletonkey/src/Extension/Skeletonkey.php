@@ -27,6 +27,7 @@ use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Database\ParameterType;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
+use Joomla\Plugin\System\Skeletonkey\Helper\DbQuery;
 use Joomla\Utilities\ArrayHelper;
 use RuntimeException;
 use Throwable;
@@ -360,18 +361,25 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		$unique     = false;
 		$errorCount = 0;
 
+		$db = $this->getDatabase();
+
 		do
 		{
 			$series = UserHelper::genRandomPassword(20);
-			$query  = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
-				->select($this->getDatabase()->quoteName('series'))
-				->from($this->getDatabase()->quoteName('#__user_keys'))
-				->where($this->getDatabase()->quoteName('series') . ' = :series')
+			$query  = DbQuery::create(
+				$db
+			)
+				->select(
+					$db->quoteName('series'))
+				->from(
+					$db->quoteName('#__user_keys'))
+				->where(
+					$db->quoteName('series') . ' = :series')
 				->bind(':series', $series);
 
 			try
 			{
-				$results = $this->getDatabase()->setQuery($query)->loadResult();
+				$results = $db->setQuery($query)->loadResult();
 
 				if ($results === null)
 				{
@@ -403,20 +411,28 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		try
 		{
 			$future = (time() + $lifetime);
-			$query  = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true));
+			$query  = DbQuery::create(
+				$db
+			);
 			$query
-				->insert($this->getDatabase()->quoteName('#__user_keys'))
-				->set($this->getDatabase()->quoteName('user_id') . ' = :userid')
-				->set($this->getDatabase()->quoteName('series') . ' = :series')
-				->set($this->getDatabase()->quoteName('uastring') . ' = :uastring')
-				->set($this->getDatabase()->quoteName('time') . ' = :time')
-				->set($this->getDatabase()->quoteName('token') . ' = :token')
+				->insert(
+					$db->quoteName('#__user_keys'))
+				->set(
+					$db->quoteName('user_id') . ' = :userid')
+				->set(
+					$db->quoteName('series') . ' = :series')
+				->set(
+					$db->quoteName('uastring') . ' = :uastring')
+				->set(
+					$db->quoteName('time') . ' = :time')
+				->set(
+					$db->quoteName('token') . ' = :token')
 				->bind(':userid', $user->username)
 				->bind(':series', $series)
 				->bind(':uastring', $cookieName)
 				->bind(':time', $future, ParameterType::INTEGER)
 				->bind(':token', $hashedToken);
-			$this->getDatabase()->setQuery($query)->execute();
+			$db->setQuery($query)->execute();
 		}
 		catch (RuntimeException $e)
 		{

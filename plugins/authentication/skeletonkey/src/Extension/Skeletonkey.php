@@ -24,6 +24,7 @@ use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Filter\InputFilter;
+use Joomla\Plugin\Authentication\Skeletonkey\Helper\DbQuery;
 use RuntimeException;
 
 class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwareInterface
@@ -132,14 +133,16 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		$now    = time();
 
 		// Remove expired tokens
-		$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
-		                  ->delete($this->getDatabase()->quoteName('#__user_keys'))
-		                  ->where($this->getDatabase()->quoteName('time') . ' < :now')
-		                  ->bind(':now', $now);
+		$db = $this->getDatabase();
+
+		$query = DbQuery::create($db)
+		                ->delete($db->quoteName('#__user_keys'))
+		                ->where($db->quoteName('time') . ' < :now')
+		                ->bind(':now', $now);
 
 		try
 		{
-			$this->getDatabase()->setQuery($query)->execute();
+			$db->setQuery($query)->execute();
 		}
 		catch (RuntimeException $e)
 		{
@@ -147,18 +150,18 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		}
 
 		// Find the matching record if it exists.
-		$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
-		                  ->select($this->getDatabase()->quoteName(['user_id', 'token', 'series', 'time']))
-		                  ->from($this->getDatabase()->quoteName('#__user_keys'))
-		                  ->where($this->getDatabase()->quoteName('series') . ' = :series')
-		                  ->where($this->getDatabase()->quoteName('uastring') . ' = :uastring')
-		                  ->order($this->getDatabase()->quoteName('time') . ' DESC')
+		$query = DbQuery::create($db)
+		                  ->select($db->quoteName(['user_id', 'token', 'series', 'time']))
+		                  ->from($db->quoteName('#__user_keys'))
+		                  ->where($db->quoteName('series') . ' = :series')
+		                  ->where($db->quoteName('uastring') . ' = :uastring')
+		                  ->order($db->quoteName('time') . ' DESC')
 		                  ->bind(':series', $series)
 		                  ->bind(':uastring', $cookieName);
 
 		try
 		{
-			$results = $this->getDatabase()->setQuery($query)->loadObjectList();
+			$results = $db->setQuery($query)->loadObjectList();
 		}
 		catch (RuntimeException $e)
 		{
@@ -186,14 +189,14 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			 * Either the series was guessed correctly or a cookie was stolen and used twice (once by attacker and once by victim).
 			 * Delete all tokens for this user!
 			 */
-			$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
-			                  ->delete($this->getDatabase()->quoteName('#__user_keys'))
-			                  ->where($this->getDatabase()->quoteName('user_id') . ' = :userid')
+			$query = DbQuery::create($db)
+			                  ->delete($db->quoteName('#__user_keys'))
+			                  ->where($db->quoteName('user_id') . ' = :userid')
 			                  ->bind(':userid', $results[0]->user_id);
 
 			try
 			{
-				$this->getDatabase()->setQuery($query)->execute();
+				$db->setQuery($query)->execute();
 			}
 			catch (RuntimeException $e)
 			{
@@ -216,16 +219,16 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		}
 
 		// Make sure there really is a user with this name and get the data for the session.
-		$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
-		                  ->select($this->getDatabase()->quoteName(['id', 'username', 'password']))
-		                  ->from($this->getDatabase()->quoteName('#__users'))
-		                  ->where($this->getDatabase()->quoteName('username') . ' = :userid')
-		                  ->where($this->getDatabase()->quoteName('requireReset') . ' = 0')
+		$query = DbQuery::create($db)
+		                  ->select($db->quoteName(['id', 'username', 'password']))
+		                  ->from($db->quoteName('#__users'))
+		                  ->where($db->quoteName('username') . ' = :userid')
+		                  ->where($db->quoteName('requireReset') . ' = 0')
 		                  ->bind(':userid', $results[0]->user_id);
 
 		try
 		{
-			$result = $this->getDatabase()->setQuery($query)->loadObject();
+			$result = $db->setQuery($query)->loadObject();
 		}
 		catch (RuntimeException $e)
 		{
@@ -294,14 +297,15 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		$series = $filter->clean($cookieArray[1], 'ALNUM');
 
 		// Remove the record from the database
-		$query = (method_exists($this->getDatabase(), 'createQuery') ? $this->getDatabase()->createQuery() : $this->getDatabase()->getQuery(true))
-		                  ->delete($this->getDatabase()->quoteName('#__user_keys'))
-		                  ->where($this->getDatabase()->quoteName('series') . ' = :series')
-		                  ->bind(':series', $series);
+		$db = $this->getDatabase();
+		$query = DbQuery::create($db)
+		                ->delete($db->quoteName('#__user_keys'))
+		                ->where($db->quoteName('series') . ' = :series')
+		                ->bind(':series', $series);
 
 		try
 		{
-			$this->getDatabase()->setQuery($query)->execute();
+			$db->setQuery($query)->execute();
 		}
 		catch (RuntimeException $e)
 		{
