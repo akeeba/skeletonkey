@@ -22,3 +22,21 @@ Skeleton Key is only available to select user groups, configurable in the plugin
 Moreover, you can only log in as a user which belongs in one of the allowed user groups, by default user group 2 (Joomla's default Registered group). Further to that, you cannot log in as a user which belongs in one of the forbidden groups (by default, Joomla's default Administrator and Super User groups). These groups are configurable as well.
 
 Authentication takes place using single-use, secure hashes with a short expiration date and HTTP-only cookies. This minimises the opportunity window for an attack and raises the bar for a successful attack to something that is unrealistic. In simple terms, yeah, it's as secure as it gets.
+
+## Build instructions
+
+Check out this repository and Akeeba Build Tools — Public Packager using the following directory names:
+
+- `skeletonkey` This repository.
+- `buildfiles` [Akeeba Build Tools — Public Packager](https://github.com/akeeba/buildfiles-public)
+- `build.properties` A file created as per the instructions in `buildfiles/README.md`
+
+Then:
+
+```bash
+cd skeletonkey
+composer install
+phing git
+```
+
+The generated package is under `skeletonkey/release`.
