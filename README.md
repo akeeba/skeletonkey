@@ -4,6 +4,9 @@ Allows Joomla!™ administrator to log in as any other user.
 
 [Downloads](https://github.com/akeeba/skeletonkey/releases)
 
+> [!IMPORTANT]
+> Developing and maintaining world-class software is neither easy nor free. The development of this software is subsidised by sales of our commercial offerings. If you like this software and would like to see it maintained in the future, please consider [purchasing a subscription](https://www.akeeba.com/subscribe.html) to one of our commercial offerings. _Thank you!_
+
 ## Requirements
 
 * Joomla 5.4, 6.0, 6.1, or 6.2.
