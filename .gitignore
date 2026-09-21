@@ -9,3 +9,9 @@ vendor/**
 
 /pkg_skeletonkey.xml
 /.idea/laravel-idea.xml
+
+### Release credentials
+# release.yaml / release.json are written here with all placeholders substituted
+# at release time and deleted afterwards. An aborted release leaves them behind.
+/release.yaml
+/release.json
