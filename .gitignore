@@ -24,3 +24,6 @@ vendor/**
 
 ### Bugs found while writing tests, for a follow-up session
 /known-issues.md
+
+### Security audit report (see the audit-security skill)
+/security.md
