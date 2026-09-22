@@ -27,6 +27,15 @@ This transpiles `plugins/system/skeletonkey/media/js/backend.js` → `backend.mi
 phing release
 ```
 
+## Testing
+
+Two separate suites; PHPUnit 11 is installed globally (`composer global require phpunit/phpunit ^11`), never as a project dependency.
+
+- **Unit** (`UnitTest/`, `phpunit.xml`): `phpunit` from the repo root. No Joomla, no Docker; covers `Helper\DbQuery` and the shipped files (language, manifests, version limits, defaults). See `UnitTest/README.md`.
+- **End-to-end** (`tests/integration/`, `phpunit-integration.xml`): `tests/integration/docker/run.sh` provisions a throwaway Joomla + Apache + MySQL stack in Docker (site on http://localhost:8200), installs the package, runs the suite over real HTTP and tears it down. `--keep-containers` then `phpunit -c phpunit-integration.xml` to iterate; `--matrix` for Joomla 5.4 / 6.0 / 6.1 × lowest/highest PHP. See `tests/integration/README.md`.
+
+Known product bugs are tracked in the git-ignored `known-issues.md`; tests covering them skip with `Known issue #N` via `assertOrKnownIssue()` rather than asserting the wrong behaviour.
+
 ## Architecture
 
 The package consists of three coordinated Joomla plugins that communicate via Joomla's event system:
@@ -35,7 +44,7 @@ The package consists of three coordinated Joomla plugins that communicate via Jo
 The main orchestrator. Injects "Login as user" buttons into the admin users list (`onBeforeDisplay`), handles AJAX token creation (`onAjaxSkeletonkey`), and detects/validates cookies on frontend page load (`onAfterInitialise`). The frontend JavaScript lives in `media/js/backend.js`.
 
 ### Authentication Plugin (`plugins/authentication/skeletonkey/`)
-Validates tokens during the Joomla authentication flow (`onUserAuthenticate`). Verifies the token hash from the cookie against the database, enforces expiration, and implements attack detection (purges all tokens for a user if a replayed token is detected). Cleans up cookies on logout (`onUserAfterLogout`).
+Validates tokens during the Joomla authentication flow (`onUserAuthenticate`). Verifies the token hash from the cookie against the database, enforces expiration, and implements attack detection (purges all of a user's `#__user_keys` rows when a cookie carries a known series with a wrong token; a replayed, already-used key simply finds no row). Cleans up cookies on logout (`onUserAfterLogout`).
 
 ### Action Log Plugin (`plugins/actionlog/skeletonkey/`)
 Audit trail. Listens for `onSkeletonKeyRequestLogin` events and logs which admin requested login as which user, plus success/failure.

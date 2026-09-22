@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.4/phpunit.xsd"
+         bootstrap="tests/integration/bootstrap-e2e.php"
+         processIsolation="false"
+         cacheResult="false"
+         colors="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnSkippedTests="true"
+         defaultTestSuite="integration"
+>
+    <testsuites>
+        <testsuite name="integration">
+            <directory>tests/integration/src/Tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <!--
+        End-to-end tests against a real, disposable Joomla site over real HTTP. They need a
+        provisioned stack; see tests/integration/README.md for how to bring one up:
+
+            tests/integration/docker/run.sh
+
+        Nothing here boots Joomla inside the PHPUnit process.
+    -->
+</phpunit>

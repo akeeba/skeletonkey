@@ -1,0 +1,23 @@
+# Apache 2.4 front-end. PHP runs as FastCGI in the separate php-fpm container;
+# Apache proxies *.php requests to it over fcgi://php:9000.
+#
+# AllowOverride All keeps Joomla's own .htaccess behaviour realistic.
+#
+# Apache only. Skeleton Key ships no .htaccess / web.config access rules and has no
+# web-server-specific behaviour: everything it does is a cookie, a com_ajax call and a
+# database row, none of which NginX would treat differently.
+
+ARG APACHE_VERSION=2.4
+FROM httpd:${APACHE_VERSION}
+
+RUN sed -i \
+        -e 's|^#\(LoadModule proxy_module .*\)|\1|' \
+        -e 's|^#\(LoadModule proxy_fcgi_module .*\)|\1|' \
+        -e 's|^#\(LoadModule rewrite_module .*\)|\1|' \
+        -e 's|^#\(LoadModule deflate_module .*\)|\1|' \
+        -e 's|^#\(LoadModule expires_module .*\)|\1|' \
+        -e 's|^#\(LoadModule headers_module .*\)|\1|' \
+        /usr/local/apache2/conf/httpd.conf \
+ && echo 'IncludeOptional conf/extra/e2e-vhost.conf' >> /usr/local/apache2/conf/httpd.conf
+
+COPY config/e2e-vhost.conf /usr/local/apache2/conf/extra/e2e-vhost.conf

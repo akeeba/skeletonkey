@@ -1,0 +1,80 @@
+# Dockerized throwaway stack for the Skeleton Key end-to-end tests.
+#
+# All versions are configurable through the .env file (see env.dist):
+#   JOOMLA_VERSION, PHP_VERSION, APACHE_VERSION, MYSQL_VERSION.
+#
+# Do not run this by hand. Use ./run.sh, which scrubs, provisions and tests in
+# one shot. This file only describes the services.
+#
+# No mail service: Skeleton Key sends no mail, and nothing in the suite depends
+# on Joomla's mailer.
+
+name: skeletonkey-e2e
+
+services:
+  db:
+    image: "mysql:${MYSQL_VERSION:-8.4}"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root}"
+      MYSQL_DATABASE: "${DB_NAME:-ske2e}"
+      MYSQL_USER: "${DB_USER:-ske2e}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-ske2e}"
+    command:
+      - "--sql-mode="
+    ports:
+      # Published so the host-side PHPUnit process can seed and inspect fixtures.
+      - "${DB_PORT:-33320}:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - default
+      - backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_ROOT_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+      args:
+        PHP_VERSION: "${PHP_VERSION:-8.5}"
+        PUID: "${PUID:-1000}"
+        PGID: "${PGID:-1000}"
+    volumes:
+      - ./www:/var/www/html
+    # The site itself has NO route to the internet: it only sees db and web over the internal
+    # "backend" network. That keeps every run hermetic (no update checks, no stats pings).
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        APACHE_VERSION: "${APACHE_VERSION:-2.4}"
+    ports:
+      - "${HTTP_PORT:-8200}:80"
+    volumes:
+      - ./www:/var/www/html
+    networks:
+      - default
+      - backend
+    depends_on:
+      - php
+
+networks:
+  # Published ports and the host live here.
+  default:
+  # php's only network. `internal` means no gateway: nothing on it can reach the outside world.
+  backend:
+    internal: true
+
+volumes:
+  dbdata:
