@@ -70,7 +70,7 @@ Each plugin registers via `services/provider.php` using Joomla's DI container pa
 
 ## Languages
 
-Localization files are in INI format under each plugin's `language/` directory. Supported: en-GB, el-GR, nl-NL.
+Localization files are in INI format under each plugin's `language/` directory. Supported: en-GB (source), de-DE, el-GR, es-ES, fr-FR, it-IT and pt-PT; nl-NL covers the system plugin only.
 
 ## Git: commit and tag outside the sandbox
 

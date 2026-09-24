@@ -32,5 +32,4 @@ gitignored build copy; don't edit it instead.
 glossaries keep terminology consistent between runs.
 
 **How to apply:** When adding a language, create all 7 files, update all 4 manifests, and create or
-update the glossary in `build/glossaries/`. The "Languages" line in `AGENTS.md` (en-GB, el-GR, nl-NL)
-predates this list; the list above is the accurate one.
+update the glossary in `build/glossaries/`, and keep the "Languages" line in `AGENTS.md` in step.
