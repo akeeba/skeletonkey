@@ -361,31 +361,19 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			}
 		}
 
-		// Destroy the cookie. Takes into account Joomla 6 changes in Cookie::set().
-		$cookiePath   = $this->getApplication()->get('cookie_path', '/') ?: '/';
-		$cookieDomain = $this->getApplication()->get('cookie_domain', '');
-
-		if (!version_compare(JVERSION, '5.999.999', 'le'))
-		{
-			$this->getApplication()->getInput()->cookie->set(
-				$cookieName,
-				'',
-				[
-					'expires'  => 1,
-					'path'     => $cookiePath,
-					'domain'   => $cookieDomain,
-					'secure'   => $this->getApplication()->isHttpsForced(),
-					'httponly' => true,
-					// Currently ignored in Joomla!. Added in hopes of future support...
-					'samesite' => 'Strict',
-				]
-			);
-
-			return;
-		}
-
-		// Joomla 5.x support.
-		$this->getApplication()->getInput()->cookie->set($cookieName, '', 1, $cookiePath, $cookieDomain);
+		// Destroy the cookie. The options-array form of Cookie::set() is available since before Joomla 5.4.
+		$this->getApplication()->getInput()->cookie->set(
+			$cookieName,
+			'',
+			[
+				'expires'  => 1,
+				'path'     => $this->getApplication()->get('cookie_path', '/') ?: '/',
+				'domain'   => $this->getApplication()->get('cookie_domain', ''),
+				'secure'   => $this->getApplication()->isHttpsForced(),
+				'httponly' => true,
+				'samesite' => 'Strict',
+			]
+		);
 	}
 
 	/**

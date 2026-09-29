@@ -38,6 +38,23 @@ class KeyRequestTest extends AbstractE2ETestCase
 		$this->assertSame([true], $json['data'] ?? null, $response->summary());
 	}
 
+	public function testTheKeyCookieIsHttpOnlyAndSameSiteStrictOnEveryJoomlaVersion(): void
+	{
+		$browser  = $this->superUser();
+		$response = $this->requestKey($browser, static::$fixtures->userId('alice'));
+
+		$this->assertTrue($this->keyIssued($browser, $response), $response->summary());
+
+		$cookies = array_values(array_filter(
+			$response->getHeaders('Set-Cookie'),
+			static fn(string $header): bool => str_starts_with($header, 'skeletonkey_')
+		));
+
+		$this->assertCount(1, $cookies, 'Expected one Skeleton Key Set-Cookie header.');
+		$this->assertStringContainsString('HttpOnly', $cookies[0]);
+		$this->assertStringContainsString('SameSite=Strict', $cookies[0]);
+	}
+
 	public function testMissingAntiCsrfTokenIsRefused(): void
 	{
 		$browser = $this->superUser();

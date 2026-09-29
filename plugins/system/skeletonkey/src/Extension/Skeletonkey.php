@@ -73,9 +73,9 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 	/**
 	 * @inheritDoc
 	 */
-	public function __construct(&$subject, $config = [])
+	public function __construct($config = [])
 	{
-		parent::__construct($subject, $config);
+		parent::__construct($config);
 
 		$this->populateOptions();
 	}
@@ -490,39 +490,18 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			return false;
 		}
 
-		// Set the cookie. Takes into account Joomla 6 changes in Cookie::set().
-		$cookiePath   = $this->getApplication()->get('cookie_path', '/') ?: '/';
-		$cookieDomain = $this->getApplication()->get('cookie_domain', '');
-
-		// Joomla 6.x and later
-		if (version_compare(JVERSION, '5.999.999', 'gt'))
-		{
-			$this->getApplication()->getInput()->cookie->set(
-				$cookieName,
-				$cookieValue,
-				[
-					'expires'  => $future,
-					'path'     => $cookiePath,
-					'domain'   => $cookieDomain,
-					'secure'   => $this->isFrontendHttpsForced(),
-					'httponly' => true,
-					// Currently ignored in Joomla!. Added in hopes of future support...
-					'samesite' => 'Strict',
-				]
-			);
-
-			return true;
-		}
-
-		// Joomla 5.x support
+		// Set the cookie. The options-array form of Cookie::set() is available since before Joomla 5.4.
 		$this->getApplication()->getInput()->cookie->set(
 			$cookieName,
 			$cookieValue,
-			$future,
-			$cookiePath,
-			$cookieDomain,
-			$this->isFrontendHttpsForced(),
-			true
+			[
+				'expires'  => $future,
+				'path'     => $this->getApplication()->get('cookie_path', '/') ?: '/',
+				'domain'   => $this->getApplication()->get('cookie_domain', ''),
+				'secure'   => $this->isFrontendHttpsForced(),
+				'httponly' => true,
+				'samesite' => 'Strict',
+			]
 		);
 
 		return true;
