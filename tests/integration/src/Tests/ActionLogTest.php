@@ -32,11 +32,7 @@ class ActionLogTest extends AbstractE2ETestCase
 
 		$logs = $this->requestLogs();
 
-		$this->assertOrKnownIssue(
-			$logs !== [],
-			1,
-			'Nothing is logged: on Joomla 6.1 the request dies with "Dispatcher not set" before onSkeletonKeyRequestLogin is dispatched.'
-		);
+		$this->assertNotEmpty($logs, 'Nothing is logged.');
 
 		$this->assertCount(1, $logs);
 
@@ -84,7 +80,7 @@ class ActionLogTest extends AbstractE2ETestCase
 
 		$logs = $this->requestLogs();
 
-		$this->assertOrKnownIssue($logs !== [], 1, 'Nothing is logged: see testAnImpersonationIsLogged.');
+		$this->assertNotEmpty($logs, 'Nothing is logged.');
 
 		$this->assertSame('PLG_ACTIONLOG_SKELETONKEY_LOG_REQUEST_SUCCESS_MFABYPASS', $logs[0]['message_language_key']);
 	}
@@ -94,7 +90,7 @@ class ActionLogTest extends AbstractE2ETestCase
 		$browser = $this->superUser();
 		$this->logInAs($browser, 'alice');
 
-		$this->assertOrKnownIssue($this->actionLogs() !== [], 1, 'Nothing is logged: see testAnImpersonationIsLogged.');
+		$this->assertNotEmpty($this->actionLogs(), 'Nothing is logged.');
 
 		$page = $browser->get('administrator/index.php', ['option' => 'com_actionlogs', 'view' => 'actionlogs']);
 
@@ -107,11 +103,9 @@ class ActionLogTest extends AbstractE2ETestCase
 		$this->assertStringContainsString('was authorised to log in to the frontend as', $page->body);
 
 		// The entry must link to both users' edit pages with well-formed anchors.
-		$this->assertOrKnownIssue(
-			(bool) preg_match('#<a href="[^"]*task=user\.edit&(amp;)?id=' . static::$fixtures->userId('alice') . '"#', $page->body),
-			3,
-			'The log message is delimited with typographic quotes, so its links render as href=\\”…\\” — '
-			. 'not a quoted attribute — and the text is wrapped in stray ” characters.'
+		$this->assertMatchesRegularExpression(
+			'#<a href="[^"]*task=user\.edit&(amp;)?id=' . static::$fixtures->userId('alice') . '"#',
+			$page->body
 		);
 	}
 

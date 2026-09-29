@@ -59,15 +59,7 @@ class UsersPageTest extends AbstractE2ETestCase
 	{
 		$label = $this->scriptOptions($this->usersPage($this->superUser()))['joomla.jtext']['PLG_SYSTEM_SKELETONKEY_BTN_LABEL'] ?? '';
 
-		$this->assertOrKnownIssue(
-			$label === 'Log in as user',
-			3,
-			sprintf(
-				'en-GB strings are delimited with typographic quotes (U+201D) instead of ASCII ", so Joomla keeps them '
-				. 'as part of the value; the button reads %s.',
-				json_encode($label, JSON_UNESCAPED_UNICODE)
-			)
-		);
+		$this->assertSame('Log in as user', $label);
 	}
 
 	public function testNoButtonsForABackendUserOutsideTheControlGroups(): void

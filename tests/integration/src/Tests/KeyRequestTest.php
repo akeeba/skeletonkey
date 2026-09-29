@@ -29,12 +29,7 @@ class KeyRequestTest extends AbstractE2ETestCase
 		$browser  = $this->superUser();
 		$response = $this->requestKey($browser, static::$fixtures->userId('alice'));
 
-		$this->assertOrKnownIssue(
-			!$this->hitsDispatcherIssue($response),
-			1,
-			'onAjaxSkeletonkey() calls $this->getDispatcher(), which Joomla 6.1 no longer injects into SubscriberInterface '
-			. 'plugins; the request dies with "Dispatcher not set" after the key was written, so the button reports failure.'
-		);
+		$this->assertFalse($this->hitsDispatcherIssue($response), $response->summary());
 
 		$json = $response->json();
 
