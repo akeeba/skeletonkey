@@ -28,6 +28,22 @@ return new class implements ServiceProviderInterface {
 	 */
 	public function register(Container $container)
 	{
+		// Enforce minimum / maximum PHP and Joomla versions.
+		$minimumPhp    = '8.1.0';
+		$maximumPhp    = '8.7';
+		$minimumJoomla = '5.4.0';
+		$maximumJoomla = '6.3';
+
+		if (
+			version_compare(PHP_VERSION, $minimumPhp, 'lt')
+			|| version_compare(PHP_VERSION, $maximumPhp, 'ge')
+			|| version_compare(JVERSION, $minimumJoomla, 'lt')
+			|| version_compare(JVERSION, $maximumJoomla, 'ge')
+		)
+		{
+			return;
+		}
+
 		$container->set(
 			PluginInterface::class,
 			function (Container $container) {

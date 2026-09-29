@@ -24,6 +24,30 @@
 			"limit": ">=5.4.0 <6.3",
 			"locations": [
 				{
+					"file": "plugins/system/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$minimumPhp",
+					"value": "PHP_MIN"
+				},
+				{
+					"file": "plugins/system/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$maximumPhp",
+					"value": "PHP_MAX"
+				},
+				{
+					"file": "plugins/system/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$minimumJoomla",
+					"value": "LIMIT_MIN"
+				},
+				{
+					"file": "plugins/system/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$maximumJoomla",
+					"value": "LIMIT_MAX"
+				},
+				{
 					"file": "plugins/system/skeletonkey/script.plg_system_skeletonkey.php",
 					"type": "variable",
 					"marker": "$minimumPhp",
@@ -48,6 +72,30 @@
 					"value": "LIMIT_MAX"
 				},
 				{
+					"file": "plugins/authentication/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$minimumPhp",
+					"value": "PHP_MIN"
+				},
+				{
+					"file": "plugins/authentication/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$maximumPhp",
+					"value": "PHP_MAX"
+				},
+				{
+					"file": "plugins/authentication/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$minimumJoomla",
+					"value": "LIMIT_MIN"
+				},
+				{
+					"file": "plugins/authentication/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$maximumJoomla",
+					"value": "LIMIT_MAX"
+				},
+				{
 					"file": "plugins/authentication/skeletonkey/script.plg_authentication_skeletonkey.php",
 					"type": "variable",
 					"marker": "$minimumPhp",
@@ -67,6 +115,30 @@
 				},
 				{
 					"file": "plugins/authentication/skeletonkey/script.plg_authentication_skeletonkey.php",
+					"type": "variable",
+					"marker": "$maximumJoomla",
+					"value": "LIMIT_MAX"
+				},
+				{
+					"file": "plugins/actionlog/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$minimumPhp",
+					"value": "PHP_MIN"
+				},
+				{
+					"file": "plugins/actionlog/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$maximumPhp",
+					"value": "PHP_MAX"
+				},
+				{
+					"file": "plugins/actionlog/skeletonkey/services/provider.php",
+					"type": "variable",
+					"marker": "$minimumJoomla",
+					"value": "LIMIT_MIN"
+				},
+				{
+					"file": "plugins/actionlog/skeletonkey/services/provider.php",
 					"type": "variable",
 					"marker": "$maximumJoomla",
 					"value": "LIMIT_MAX"

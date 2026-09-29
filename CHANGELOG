@@ -1,6 +1,7 @@
 Skeleton Key 1.2.5
 ================================================================================
 + Optional "Bypass Multi-factor Authentication" setting to prevent the impersonated session from being redirected to Joomla's mandatory MFA setup page [gh-26]
+~ Plugins no longer load on PHP or Joomla versions outside the supported range, not just at install time
 ~ Funnelled the createQuery()/getQuery(true) compatibility branch through a per-plugin Helper\DbQuery::create() method
 ~ Raised the minimum requirement to PHP 8.1 and Joomla 5.4; dropped PHP 7.4-8.0 and Joomla 4.x support. Maximum supported versions are now enforced at install time (PHP 8.6, Joomla 6.2).
 
