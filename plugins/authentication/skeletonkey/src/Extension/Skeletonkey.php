@@ -397,7 +397,9 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 	 */
 	private function getHashedUserAgent(): string
 	{
-		return ApplicationHelper::getHash(Uri::root() . $this->getApplication()->client->userAgent);
+		// Scheme-neutral: with "Force HTTPS: Administrator only" the key is issued from an https:// back-end and looked
+		// for on an http:// front-end, and both must derive the same name.
+		return ApplicationHelper::getHash(preg_replace('#^https?:#i', '', Uri::root()) . $this->getApplication()->client->userAgent);
 	}
 
 }

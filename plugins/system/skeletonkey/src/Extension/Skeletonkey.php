@@ -489,7 +489,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 					'expires'  => $future,
 					'path'     => $cookiePath,
 					'domain'   => $cookieDomain,
-					'secure'   => $this->getApplication()->isHttpsForced(),
+					'secure'   => $this->isFrontendHttpsForced(),
 					'httponly' => true,
 					// Currently ignored in Joomla!. Added in hopes of future support...
 					'samesite' => 'Strict',
@@ -506,7 +506,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			$future,
 			$cookiePath,
 			$cookieDomain,
-			$this->getApplication()->isHttpsForced(),
+			$this->isFrontendHttpsForced(),
 			true
 		);
 
@@ -558,7 +558,24 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 	 */
 	private function getHashedUserAgent(): string
 	{
-		return ApplicationHelper::getHash(Uri::root() . $this->getApplication()->client->userAgent);
+		// Scheme-neutral: with "Force HTTPS: Administrator only" the key is issued from an https:// back-end and looked
+		// for on an http:// front-end, and both must derive the same name.
+		return ApplicationHelper::getHash(preg_replace('#^https?:#i', '', Uri::root()) . $this->getApplication()->client->userAgent);
+	}
+
+	/**
+	 * Is the FRONT-END served over HTTPS only?
+	 *
+	 * The key is issued from the back-end but used on the front-end, so the cookie's Secure flag depends on the
+	 * front-end's scheme. isHttpsForced() answers for the back-end, where "Force HTTPS: Administrator only" is already
+	 * enough to say yes; a Secure cookie would then never reach an HTTP front-end.
+	 *
+	 * @return  bool
+	 * @since   1.2.6
+	 */
+	private function isFrontendHttpsForced(): bool
+	{
+		return (int) $this->getApplication()->get('force_ssl') === 2;
 	}
 
 	/**

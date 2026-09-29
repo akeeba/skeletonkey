@@ -442,10 +442,50 @@ abstract class AbstractE2ETestCase extends TestCase
 	}
 
 	/**
+	 * Run a callback with some of Joomla's global configuration (configuration.php) changed, then put it back.
+	 *
+	 * Edited inside the container: a host-side edit of the bind-mounted file is not reliably seen by PHP-FPM straight
+	 * away. Only existing scalar properties can be changed.
+	 *
+	 * @param   array<string, int|string>  $properties  Property name => new value, e.g. ['force_ssl' => 1].
+	 * @param   callable                   $callback    What to run meanwhile.
+	 *
+	 * @return  mixed  What the callback returned.
+	 * @since   1.2.6
+	 */
+	protected function withSiteConfig(array $properties, callable $callback)
+	{
+		$config = '/var/www/html/configuration.php';
+		$cli    = $this->cli();
+
+		$cli->run(['cp', $config, $config . '.bak']);
+
+		try
+		{
+			foreach ($properties as $name => $value)
+			{
+				$value = is_int($value) ? (string) $value : "'" . addslashes((string) $value) . "'";
+
+				[$code, $output] = $cli->run([
+					'sed', '-i', sprintf('s|^\\(\\s*public \\$%s\\s*=\\s*\\).*;|\\1%s;|', $name, $value), $config,
+				]);
+
+				$this->assertSame(0, $code, $output);
+			}
+
+			return $callback();
+		}
+		finally
+		{
+			$cli->run(['mv', $config . '.bak', $config]);
+		}
+	}
+
+	/**
 	 * The name Skeleton Key gives its cookie for a browser with this user agent.
 	 *
-	 * `skeletonkey_` + md5(site secret . site root URL . user agent) — ApplicationHelper::getHash() of
-	 * Uri::root() plus the UA. Computed here, independently, so a test can plant a cookie exactly where the
+	 * `skeletonkey_` + md5(site secret . site root URL without its scheme . user agent) —
+	 * ApplicationHelper::getHash() of Uri::root() (minus "http:"/"https:") plus the UA. Computed here, independently, so a test can plant a cookie exactly where the
 	 * plugin will look for it without first asking the plugin for one.
 	 *
 	 * @param   string  $userAgent  The browser's user agent.
@@ -463,7 +503,7 @@ abstract class AbstractE2ETestCase extends TestCase
 			'Could not read the site secret from configuration.php.'
 		);
 
-		return self::COOKIE_PREFIX . md5($match[1] . static::$config->getSiteUrl() . '/' . $userAgent);
+		return self::COOKIE_PREFIX . md5($match[1] . preg_replace('#^https?:#i', '', static::$config->getSiteUrl()) . '/' . $userAgent);
 	}
 
 	/**
