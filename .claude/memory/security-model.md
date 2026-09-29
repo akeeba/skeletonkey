@@ -58,3 +58,18 @@ Third example: audit finding L5 (the cookie `Secure` flag follows `force_ssl`, n
 That is how Joomla itself sets its cookies, and the affected sites (HTTPS front-end redirected to HTTP, or a TLS
 terminator that does not report HTTPS) are misconfigured; deviating from core would break them for no practical gain.
 Match core's cookie behaviour rather than second-guessing it.
+
+## The MFA bypass is a core feature, not a vulnerability
+
+Rule: with "Bypass Multi-factor Authentication" enabled, the plugin reports its login as response type `Cookie` so Joomla
+treats it as a silent login. Do not remove or work around that, and do not treat its side effects (e.g. core Remember
+Me reacting to a `Cookie` login, L7) as findings.
+
+**Why:** Being able to reach MFA-protected accounts is the reason the plugin exists. A large share of the accounts a
+support person needs to impersonate have MFA enabled, and asking the operator to disable the user's MFA is far worse for
+security than bypassing it, while the alternative (logging out and back in as oneself) is disruptive to support work.
+Users of the plugin agree. The bypass is opt-in and audited (`…_MFABYPASS` in the action log). Audit finding L7 was
+rejected on this basis.
+
+**How to apply:** Findings whose fix is "stop bypassing MFA" or "stop pretending to be a Cookie login" are invalid.
+Findings where MFA is bypassed while the option is OFF remain valid (that was M2, fixed).
