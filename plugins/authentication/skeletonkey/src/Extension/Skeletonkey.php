@@ -327,14 +327,20 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		$filter = new InputFilter();
 		$series = $filter->clean($cookieArray[1] ?? '', 'ALNUM');
 
-		// Remove the record from the database, unless the cookie had no series at all.
+		/**
+		 * Remove the record from the database. Only the record issued to THIS browser (the cookie name is derived
+		 * from the user agent) may be removed: someone who has merely seen a series must not be able to void
+		 * somebody else's key by presenting it from another browser.
+		 */
 		if ($series !== '')
 		{
 			$db    = $this->getDatabase();
 			$query = DbQuery::create($db)
 			                ->delete($db->quoteName('#__user_keys'))
 			                ->where($db->quoteName('series') . ' = :series')
-			                ->bind(':series', $series);
+			                ->where($db->quoteName('uastring') . ' = :uastring')
+			                ->bind(':series', $series)
+			                ->bind(':uastring', $cookieName);
 
 			try
 			{

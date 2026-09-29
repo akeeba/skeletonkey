@@ -126,12 +126,7 @@ class KeyConsumptionTest extends AbstractE2ETestCase
 
 		// The thief never held a valid token for its own user agent, so its attempts should leave the
 		// victim's key alone.
-		$this->assertOrKnownIssue(
-			count($this->keyRows('alice')) === 1,
-			7,
-			'A failed attempt deletes the key by its series alone (destroyCookie() runs "DELETE … WHERE series = ?" '
-			. 'without the token or the user agent matching), so anyone who has seen a series can void that key.'
-		);
+		$this->assertCount(1, $this->keyRows('alice'), 'A failed attempt from another browser voided the victim\'s key.');
 
 		$this->visitFrontend($victim);
 
