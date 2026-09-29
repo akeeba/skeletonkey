@@ -315,7 +315,8 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		$createdCookie = $this->createCookie($userId);
 
 		// Trigger the Action Log plugin
-		$this->getDispatcher()->dispatch(
+		// Joomla 6.1+ no longer injects a dispatcher into subscriber plugins, so go through the application.
+		$this->getApplication()->getDispatcher()->dispatch(
 			'onSkeletonKeyRequestLogin',
 			new Event('onSkeletonKeyRequestLogin', [
 				'controlUser'   => $currentUser,
