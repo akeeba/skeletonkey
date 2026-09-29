@@ -13,3 +13,19 @@ their own site" and is a Joomla ACL-default matter.
 **How to apply:** When triaging audit findings, do not add `core.admin` target/requester checks or similar hardening
 solely to stop an Administrator from acting as a Super User via plugin options. Findings reachable by lower-privileged
 users, unauthenticated users, or that break a control our own option promises (e.g. the MFA bypass switch) remain valid.
+
+## Who may impersonate whom is the site owner's policy, not ours
+
+Rule: the plugin does not second-guess which users the trusted configurators allow to impersonate which accounts.
+Group lists (`allowedControlGroups`, `allowedTargetGroups`, `disallowedTargetGroups`) are the whole policy. Do not add
+ACL-permission checks (`core.admin`, `core.login.admin`, `core.manage`), refuse "more privileged" targets, or re-check
+eligibility at redemption on the grounds that the requester is less privileged than the target.
+
+**Why:** Audit finding L1 was rejected. Legitimate use cases include technical support, where a low-privileged
+technician impersonates a far more privileged account (even the CEO's) to troubleshoot. That is governed by internal
+process, contracts and accountability, which is how IT departments operate; treating it as a security failure would make
+the feature unusable for them.
+
+**How to apply:** Findings of the form "requester X is not as privileged as target Y" are invalid. Findings where the
+plugin fails to enforce the configured lists, or where an unauthorised party (not a configured requester) obtains a
+key, remain valid.
