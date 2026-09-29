@@ -37,6 +37,33 @@ class KeyConsumptionTest extends AbstractE2ETestCase
 		$this->assertSame([], $this->keyRows(), 'The expired key was not purged.');
 	}
 
+	public function testAnExpiredKeyIsRefusedEvenWhenThePurgeFails(): void
+	{
+		$browser = $this->superUser();
+		$this->issueKey($browser, 'alice');
+
+		$this->db()->query('UPDATE #__user_keys SET time = ?', [time() - 5]);
+
+		// The expired-key purge swallows its errors (lock timeout, replica lag…). Make every DELETE fail, so the
+		// expired row is still there when the key is looked up: expiry must not depend on the purge succeeding.
+		$db = $this->db();
+		$db->query('DROP TRIGGER IF EXISTS skeletonkey_e2e_no_delete');
+		$db->query(
+			"CREATE TRIGGER skeletonkey_e2e_no_delete BEFORE DELETE ON #__user_keys FOR EACH ROW "
+			. "SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Purge failed'"
+		);
+
+		try
+		{
+			$this->assertNotServerError($this->visitFrontend($browser));
+			$this->assertFrontendGuest($browser, 'An expired key logged the browser in because the purge failed.');
+		}
+		finally
+		{
+			$db->query('DROP TRIGGER IF EXISTS skeletonkey_e2e_no_delete');
+		}
+	}
+
 	public function testAWrongTokenForARealSeriesIsTreatedAsAnAttack(): void
 	{
 		// Two outstanding keys for alice, from two different browsers, and one for bob.

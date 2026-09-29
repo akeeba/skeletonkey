@@ -26,6 +26,10 @@ Moreover, you can only log in as a user which belongs in one of the allowed user
 
 Authentication takes place using single-use, secure hashes with a short expiration date and HTTP-only cookies. This minimises the opportunity window for an attack and raises the bar for a successful attack to something that is unrealistic. In simple terms, yeah, it's as secure as it gets.
 
+### Daylight saving time transitions
+
+The key's lifetime is very short (10 seconds by default) and is measured against the server's clock. Avoid using Skeleton Key in the moments around a daylight saving time transition (to or from summer time). If the server's clock, or the clock of the browser receiving the cookie, jumps one hour forward or back, the key may expire immediately or be discarded by the browser. If a login fails around that time, wait a minute and click the button again.
+
 ## Build instructions
 
 Check out this repository and Akeeba Build Tools — Public Packager using the following directory names:

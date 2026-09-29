@@ -154,14 +154,16 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			// We aren't concerned with errors from this query, carry on
 		}
 
-		// Find the matching record if it exists.
+		// Find the matching record if it exists. Expiry is enforced here too: the purge above may have failed.
 		$query = DbQuery::create($db)
 		                  ->select($db->quoteName(['user_id', 'token', 'series', 'time']))
 		                  ->from($db->quoteName('#__user_keys'))
 		                  ->where($db->quoteName('series') . ' = :series')
+		                  ->where($db->quoteName('time') . ' >= :notexpired')
 		                  ->where($db->quoteName('uastring') . ' = :uastring')
 		                  ->order($db->quoteName('time') . ' DESC')
 		                  ->bind(':series', $series)
+		                  ->bind(':notexpired', $now)
 		                  ->bind(':uastring', $cookieName);
 
 		try
