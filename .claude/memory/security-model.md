@@ -30,6 +30,11 @@ the feature unusable for them.
 plugin fails to enforce the configured lists, or where an unauthorised party (not a configured requester) obtains a
 key, remain valid.
 
+Another example: audit finding L6 (`cookie_lifetime` has no bounds) was rejected. Plugin option values are set by trusted
+users who are trusted to know their use case; if the value was not meant to be adjustable it would be hard-coded rather
+than exposed. Do not add min/max limits or clamps to options solely to protect against a misconfiguration by the people
+allowed to configure the plugin.
+
 ## Theoretical races and hardening with no practical exploit route are invalid
 
 Rule: a finding is invalid when exploiting it requires a compromise that is already worse (e.g. holding the plaintext
