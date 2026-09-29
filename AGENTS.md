@@ -94,6 +94,7 @@ and across agentic harnesses (Claude Code, Codex, Qwen Code, Kimi Code, Junie, â
 | Add a language, or add, change or translate language strings (INI files, glossaries, manifest `<languages>` entries) | `.claude/memory/translations.md` |
 | Triage, rate or fix a security finding, or decide whether it is in scope | `.claude/memory/security-model.md` |
 | Write or change an end-to-end test (or anything that captures logs, edits site config or needs a DB trigger in a test) | `.claude/memory/testing.md` |
+| Touch cookies, plugin constructors, the package installer script, `build.xml`'s fileset or the key request protocol | `.claude/memory/joomla-compat.md` |
 
 ### Recording new memories
 

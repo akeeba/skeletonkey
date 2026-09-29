@@ -34,8 +34,15 @@ that touches the database schema this way must clean up after itself.
 
 - `#__user_keys.user_id` holds the **username**, not the numeric ID, and `time` is a varchar holding a Unix timestamp;
   core's Remember Me plugin shares the table. Use `keyRows($username)`.
+- Run against a specific Joomla with `tests/integration/docker/run.sh -j 5.4 --keep-containers`; the floor (5.4) and the
+  default (6.1) both need to pass for anything touching Joomla APIs.
+- A request can be made to look like HTTPS by sending `X-Forwarded-Proto: https` (the stack itself only speaks HTTP;
+  the Apache vhost maps the header to `HTTPS=on`). `HttpsTest` uses it, with `withSiteConfig(['force_ssl' => 1], …)`, to
+  simulate "Force HTTPS: Administrator only": back-end requests carry the header, front-end ones do not. curl will not
+  send a `Secure` cookie over the real HTTP, so assert the flag on the cookie rather than expecting it to be sent.
 - The key request is a **POST** to `index.php?option=com_ajax&format=json&plugin=skeletonkey&group=system` with
-  `user_id` and the anti-CSRF token in the body; `requestKey()` does this. A GET is refused.
+  `user_id` and the anti-CSRF token in the body; `requestKey()` does this. A GET is refused. Refusals answer `false`, except blocked / must-reset targets, which answer
+  `blocked` / `mustreset`.
 - Only authenticated users' refusals are written to the action log; guests never are.
 - Action-log message keys: `…LOG_REQUEST_*` (granted / failed), `…LOG_REFUSED_*` (one per reason) and `…LOG_REDEEMED`.
   Filter by prefix when counting entries, because one impersonation now writes two.
