@@ -10,6 +10,7 @@ Skeleton Key 1.2.5
 # [LOW] Refused key requests and the use of a key were not recorded in the User Actions Log
 # [LOW] A malformed Skeleton Key cookie caused a PHP warning
 # [LOW] A copied login cookie presented from another browser could void the real user's key
+# [LOW] Failed Skeleton Key logins were logged as "user 0" instead of naming the affected account
 
 Skeleton Key 1.2.4
 ================================================================================

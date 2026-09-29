@@ -93,6 +93,59 @@ class KeyConsumptionTest extends AbstractE2ETestCase
 		$this->assertFrontendGuest($second, 'A key purged after an attack still worked.');
 	}
 
+	public function testAnAttackIsLoggedWithTheUsernameAndTheUserId(): void
+	{
+		$browser = $this->superUser();
+		[$name, $value] = $this->issueKey($browser, 'alice');
+
+		[, $series] = explode('.', $value);
+		$browser->setCookie($name, str_repeat('x', 32) . '.' . $series);
+
+		$log = $this->logEverythingDuring(fn() => $this->visitFrontend($browser));
+
+		$this->assertStringContainsString(
+			sprintf(
+				'Skeleton Key login failed for user %s (#%d).',
+				static::$fixtures->username('alice'),
+				static::$fixtures->userId('alice')
+			),
+			$log
+		);
+	}
+
+	/**
+	 * Run a callback with Joomla's "log everything" option on and return what was logged meanwhile.
+	 *
+	 * @param   callable  $callback
+	 *
+	 * @return  string
+	 */
+	private function logEverythingDuring(callable $callback): string
+	{
+		$root    = static::$config->getSiteRoot();
+		$config  = $root . '/configuration.php';
+		$logFile = $root . '/administrator/logs/everything.php';
+		$backup  = (string) file_get_contents($config);
+
+		@unlink($logFile);
+		// configuration.php has no log_everything property by default: add it right after log_path.
+		$modified = preg_replace('/(public \\$log_path\\s*=\\s*[^;]+;)/', '${1}' . "\n\tpublic \$log_everything = 1;", $backup, 1, $count);
+		$this->assertSame(1, $count, 'Could not turn on log_everything.');
+		file_put_contents($config, $modified);
+
+		try
+		{
+			$callback();
+
+			return (string) @file_get_contents($logFile);
+		}
+		finally
+		{
+			file_put_contents($config, $backup);
+			@unlink($logFile);
+		}
+	}
+
 	public function testAnUnknownSeriesIsRefused(): void
 	{
 		$browser = $this->superUser();

@@ -216,7 +216,16 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			}
 
 			// Issue warning by email to user and/or admin?
-			Log::add(sprintf('Skeleton Key login failed for user %u.', $results[0]->user_id), Log::WARNING, 'security');
+			// The key's user_id column holds the username, so look up the numeric ID to name the account fully.
+			Log::add(
+				sprintf(
+					'Skeleton Key login failed for user %s (#%d).',
+					preg_replace('/[[:cntrl:]]/', '', (string) $results[0]->user_id),
+					(int) UserHelper::getUserId($results[0]->user_id)
+				),
+				Log::WARNING,
+				'security'
+			);
 
 			$this->destroyCookie();
 
