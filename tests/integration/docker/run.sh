@@ -567,6 +567,11 @@ install_package() {
 		[ -n "$(mysql_cli -N "${DB_NAME}" -e "SELECT extension_id FROM \`${DB_PREFIX}extensions\` WHERE type = 'plugin' AND folder = '${folder}' AND element = 'skeletonkey'" 2>/dev/null)" ] \
 			|| die "The installer exited cleanly, but plg_${folder}_skeletonkey is not installed."
 	done
+	# A fresh installation enables the plugins (the package's postflight); Joomla itself installs them disabled.
+	for folder in system authentication actionlog; do
+		[ "$(mysql_cli -N "${DB_NAME}" -e "SELECT enabled FROM \`${DB_PREFIX}extensions\` WHERE type = 'plugin' AND folder = '${folder}' AND element = 'skeletonkey'" 2>/dev/null)" = "1" ] \
+			|| die "A fresh installation left plg_${folder}_skeletonkey disabled."
+	done
 	ok "${label} installed"
 }
 

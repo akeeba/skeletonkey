@@ -14,6 +14,7 @@
 		<include name="language/**"/>
 
 		<include name="pkg_*.xml"/>
+		<include name="script.*.php"/>
 		<include name="*.txt"/>
 	</fileset>
 

@@ -85,6 +85,29 @@ class PackageSurfaceTest extends TestCase
 		$this->assertDirectoryExists($dir . '/' . $manifest->namespace['path'] . '/Extension');
 	}
 
+	public function testThePackageEnablesItsPluginsOnFreshInstallsOnly(): void
+	{
+		$manifest = (string) file_get_contents(self::root() . '/build/templates/pkg_skeletonkey.xml');
+		$script   = self::root() . '/build/templates/script.skeletonkey.php';
+
+		// The installer only runs a script the manifest names, and the build only ships it if the fileset lists it.
+		$this->assertStringContainsString('<scriptfile>script.skeletonkey.php</scriptfile>', $manifest);
+		$this->assertStringContainsString('script.*.php', (string) file_get_contents(self::root() . '/build.xml'));
+		$this->assertFileExists($script);
+
+		$code = (string) file_get_contents($script);
+
+		$this->assertMatchesRegularExpression('/class\s+Pkg_SkeletonkeyInstallerScript\b/', $code);
+		$this->assertMatchesRegularExpression('/function\s+postflight\s*\(/', $code);
+		// We cannot know what the site owner intended on an update: only ever act on a fresh install.
+		$this->assertMatchesRegularExpression('/\$type\s*!==\s*\'install\'/', $code);
+
+		foreach (['authentication', 'system', 'actionlog'] as $folder)
+		{
+			$this->assertStringContainsString("'" . $folder . "'", $code);
+		}
+	}
+
 	public function testTheWebAssetPointsAtTheShippedScript(): void
 	{
 		$media  = self::root() . '/plugins/system/skeletonkey/media';
