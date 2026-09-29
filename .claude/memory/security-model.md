@@ -73,3 +73,19 @@ rejected on this basis.
 
 **How to apply:** Findings whose fix is "stop bypassing MFA" or "stop pretending to be a Cookie login" are invalid.
 Findings where MFA is bypassed while the option is OFF remain valid (that was M2, fixed).
+
+## Deliberate choices that audits keep flagging: leave them alone
+
+These were reviewed and rejected; do not re-raise or "fix" them.
+
+- **Plugin ZIPs built from a deny-list** (L13): excluding the occasional file is easier than remembering to include new
+  ones. Standard practice for every project.
+- **Database exception text in the security log** (I1): logs are for debugging; hiding the details defeats them.
+- **No `noopener` on the same-origin `window.open`** (I3): no reason to set it.
+- **`key_length` option, including its low values** (I4): the default is stated explicitly on purpose, and the ~119-bit
+  series plus the wrong-token purge already provide enough entropy.
+- **`$allowDowngrades = true` in the installer scripts** (I5): it is the only way to move from a development release
+  back to the stable one, which has a lower version number.
+- **Unminified source and source map shipped to `/media`** (I7): sources are shipped for customisation and
+  troubleshooting.
+- **Reflection on the Users view's `items`** (I8): deliberate; do not touch.
