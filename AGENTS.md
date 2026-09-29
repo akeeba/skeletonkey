@@ -92,6 +92,7 @@ and across agentic harnesses (Claude Code, Codex, Qwen Code, Kimi Code, Junie, â
 | Before youâ€¦ | Read |
 |---|---|
 | Add a language, or add, change or translate language strings (INI files, glossaries, manifest `<languages>` entries) | `.claude/memory/translations.md` |
+| Triage, rate or fix a security finding, or decide whether it is in scope | `.claude/memory/security-model.md` |
 
 ### Recording new memories
 
