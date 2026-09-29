@@ -162,11 +162,7 @@ class KeyConsumptionTest extends AbstractE2ETestCase
 
 		$warnings = $this->newSkeletonKeyPhpErrors();
 
-		$this->assertOrKnownIssue(
-			$warnings === [],
-			8,
-			"A cookie without a '.' makes destroyCookie() read \$cookieArray[1] unguarded: " . implode(' | ', $warnings)
-		);
+		$this->assertSame([], $warnings, 'A malformed cookie raised PHP warnings: ' . implode(' | ', $warnings));
 	}
 
 	public function testABlockedUserIsNotLoggedIn(): void

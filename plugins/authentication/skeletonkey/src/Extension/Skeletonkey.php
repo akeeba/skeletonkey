@@ -325,22 +325,25 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 
 		// Filter series since we're going to use it in the query
 		$filter = new InputFilter();
-		$series = $filter->clean($cookieArray[1], 'ALNUM');
+		$series = $filter->clean($cookieArray[1] ?? '', 'ALNUM');
 
-		// Remove the record from the database
-		$db = $this->getDatabase();
-		$query = DbQuery::create($db)
-		                ->delete($db->quoteName('#__user_keys'))
-		                ->where($db->quoteName('series') . ' = :series')
-		                ->bind(':series', $series);
+		// Remove the record from the database, unless the cookie had no series at all.
+		if ($series !== '')
+		{
+			$db    = $this->getDatabase();
+			$query = DbQuery::create($db)
+			                ->delete($db->quoteName('#__user_keys'))
+			                ->where($db->quoteName('series') . ' = :series')
+			                ->bind(':series', $series);
 
-		try
-		{
-			$db->setQuery($query)->execute();
-		}
-		catch (RuntimeException $e)
-		{
-			// We aren't concerned with errors from this query, carry on
+			try
+			{
+				$db->setQuery($query)->execute();
+			}
+			catch (RuntimeException $e)
+			{
+				// We aren't concerned with errors from this query, carry on
+			}
 		}
 
 		// Destroy the cookie. Takes into account Joomla 6 changes in Cookie::set().
