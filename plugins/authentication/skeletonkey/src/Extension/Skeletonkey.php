@@ -24,6 +24,7 @@ use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Event\Event;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Filter\InputFilter;
+use Joomla\Registry\Registry;
 use Joomla\Plugin\Authentication\Skeletonkey\Helper\DbQuery;
 use RuntimeException;
 
@@ -124,8 +125,12 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			return false;
 		}
 
-		// We are faking this to prevent TFA from kicking in.
-		$response->type = 'Cookie';
+		/**
+		 * Joomla treats a 'Cookie' login as a silent login and, by default, skips MFA for it. We only want
+		 * that when the administrator explicitly enabled "Bypass Multi-factor Authentication"; otherwise use
+		 * our own response type so Joomla's MFA gate applies as it would to any other login.
+		 */
+		$response->type = $this->isMfaBypassEnabled() ? 'Cookie' : 'SkeletonKey';
 
 		// Filter series since we're going to use it in the query
 		$filter = new InputFilter();
@@ -266,6 +271,24 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		$this->destroyCookie();
 
 		return true;
+	}
+
+	/**
+	 * Is the "Bypass Multi-factor Authentication" option of the system plugin enabled?
+	 *
+	 * @return  bool
+	 * @since   1.2.6
+	 */
+	private function isMfaBypassEnabled(): bool
+	{
+		$plugin = PluginHelper::getPlugin('system', 'skeletonkey');
+
+		if (!is_object($plugin) || empty($plugin->params))
+		{
+			return false;
+		}
+
+		return (new Registry($plugin->params))->get('bypass_mfa', 0) == 1;
 	}
 
 	/**

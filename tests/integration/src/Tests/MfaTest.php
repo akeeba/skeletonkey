@@ -85,21 +85,26 @@ class MfaTest extends AbstractE2ETestCase
 
 	public function testWithJoomlasDefaultsMfaStillAppliesWhenTheBypassIsOff(): void
 	{
-		// Joomla's defaults: mfaonsilent = No, and "cookie" counts as a silent login. The option says that
-		// with "Bypass MFA" off, the impersonated session goes through MFA; with these defaults it does not,
-		// because Skeleton Key reports its logins as response type "Cookie".
+		// Joomla's defaults: mfaonsilent = No, and "cookie" counts as a silent login. With "Bypass MFA" off the
+		// impersonated session must go through MFA, so Skeleton Key must not report its logins as "Cookie".
 		$this->setUsersParams(['mfaonsilent' => 0, 'silentresponses' => 'cookie, passwordless']);
 
 		$browser  = $this->superUser();
 		$response = $this->landOnFrontend($browser, 'mfauser');
 
-		$this->assertOrKnownIssue(
-			$this->isMfaRedirect($response, 'view=captive'),
-			2,
-			'With Joomla\'s default com_users options the impersonated session skips MFA even though "Bypass '
-			. 'Multi-factor Authentication" is No: the authentication plugin sets $response->type = \'Cookie\', '
-			. 'which plg_user_joomla treats as a silent login and marks MFA as already checked.'
-		);
+		$this->assertTrue($this->isMfaRedirect($response, 'view=captive'), 'MFA was skipped with the bypass off');
+	}
+
+	public function testWithJoomlasDefaultsTheBypassSkipsMfa(): void
+	{
+		$this->setUsersParams(['mfaonsilent' => 0, 'silentresponses' => 'cookie, passwordless']);
+		$this->setSystemParams(['bypass_mfa' => 1]);
+
+		$browser  = $this->superUser();
+		$response = $this->landOnFrontend($browser, 'mfauser');
+
+		$this->assertNotMfaRedirect($response);
+		$this->assertFrontendUser('mfauser', $browser);
 	}
 
 	/**
