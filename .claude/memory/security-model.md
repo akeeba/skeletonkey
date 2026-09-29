@@ -43,3 +43,8 @@ admin, and an atomic delete would turn the second one into a guest.
 
 **How to apply:** Before fixing a finding, ask what the attacker gains beyond what the precondition already gives them,
 and what the fix could break for a legitimate user. Do not make the single-use delete atomic.
+
+Second example: audit finding L4 (the MFA bypass trusts any successful login; the `Cookie` response type is set before the
+token is validated) was rejected the same way. Exploiting it needs the site-secret-keyed cookie name plus another
+successful login (e.g. a stolen Remember Me cookie, which core already lets skip MFA by default), so it grants nothing
+that precondition does not.
