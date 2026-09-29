@@ -122,27 +122,28 @@ class KeyConsumptionTest extends AbstractE2ETestCase
 	 */
 	private function logEverythingDuring(callable $callback): string
 	{
-		$root    = static::$config->getSiteRoot();
-		$config  = $root . '/configuration.php';
-		$logFile = $root . '/administrator/logs/everything.php';
-		$backup  = (string) file_get_contents($config);
+		// Edited inside the container: a host-side edit of the bind-mounted file is not reliably seen by PHP-FPM
+		// right away.
+		$config = '/var/www/html/configuration.php';
+		$log    = '/var/www/html/administrator/logs/everything.php';
+		$cli    = $this->cli();
 
-		@unlink($logFile);
+		$cli->run(['sh', '-c', sprintf('rm -f %s; cp %s %s.bak', $log, $config, $config)]);
 		// configuration.php has no log_everything property by default: add it right after log_path.
-		$modified = preg_replace('/(public \\$log_path\\s*=\\s*[^;]+;)/', '${1}' . "\n\tpublic \$log_everything = 1;", $backup, 1, $count);
-		$this->assertSame(1, $count, 'Could not turn on log_everything.');
-		file_put_contents($config, $modified);
+		[$code, $output] = $cli->run([
+			'sed', '-i', 's|^\\(\\s*public \\$log_path.*\\)$|\\1\\n\\tpublic \\$log_everything = 1;|', $config,
+		]);
+		$this->assertSame(0, $code, $output);
 
 		try
 		{
 			$callback();
 
-			return (string) @file_get_contents($logFile);
+			return $cli->run(['sh', '-c', sprintf('cat %s 2>/dev/null', $log)])[1];
 		}
 		finally
 		{
-			file_put_contents($config, $backup);
-			@unlink($logFile);
+			$cli->run(['sh', '-c', sprintf('mv %s.bak %s; rm -f %s', $config, $config, $log)]);
 		}
 	}
 
