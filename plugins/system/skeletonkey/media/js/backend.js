@@ -83,10 +83,18 @@ const initSkeletonKey = () => {
 				onSuccess: (data, xhr) => {
 					const returnedData = JSON.parse(data).data;
 
-					if (!returnedData || returnedData[0] === false)
+					// The plugin answers true, or false, or a code saying why this user cannot be logged in as.
+					const reasons = {
+						blocked:   'PLG_SYSTEM_SKELETONKEY_ERR_BLOCKED',
+						mustreset: 'PLG_SYSTEM_SKELETONKEY_ERR_MUSTRESET',
+					};
+
+					if (!returnedData || returnedData[0] !== true)
 					{
+						const reason = returnedData ? reasons[returnedData[0]] : undefined;
+
 						Joomla.renderMessages({
-							error: [Joomla.Text._('PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED')]
+							error: [Joomla.Text._(reason || 'PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED')]
 						});
 
 						return;

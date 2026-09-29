@@ -179,6 +179,8 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 		Text::script('PLG_SYSTEM_SKELETONKEY_BTN_LABEL');
 		Text::script('PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED');
 		Text::script('PLG_SYSTEM_SKELETONKEY_ERR_LOGINFAILED_AJAX');
+		Text::script('PLG_SYSTEM_SKELETONKEY_ERR_BLOCKED');
+		Text::script('PLG_SYSTEM_SKELETONKEY_ERR_MUSTRESET');
 	}
 
 	/**
@@ -299,6 +301,18 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			return $this->refuse($event, $currentUser, 'target', $user, $userId);
 		}
 
+		// Blocked users, and users who must reset their password, can never be logged in by a key. Say so now,
+		// instead of issuing a key that leads the operator to a blank guest page. The answer carries the reason.
+		if ((int) $user->block === 1)
+		{
+			return $this->refuse($event, $currentUser, 'blocked', $user, $userId, 'blocked');
+		}
+
+		if ((int) $user->requireReset === 1)
+		{
+			return $this->refuse($event, $currentUser, 'mustreset', $user, $userId, 'mustreset');
+		}
+
 		/**
 		 * Audit first, issue second. If logging fails (or throws) no key exists yet, so an impersonation can
 		 * never happen without an audit entry. Should issuing the key then fail, that is logged as well.
@@ -324,21 +338,22 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 	 *
 	 * @param   Event                $event        The onAjaxSkeletonkey event
 	 * @param   User|mixed           $controlUser  The user making the request
-	 * @param   string               $reason       One of token, requester, unavailable, notfound, target
+	 * @param   string               $reason       One of token, requester, unavailable, notfound, target, blocked, mustreset
 	 * @param   User|null            $targetUser   The requested user, if it exists
 	 * @param   int                  $targetId     The requested user ID
+	 * @param   bool|string          $answer       What to answer com_ajax: false, or a reason code the operator may be told
 	 *
 	 * @return  void
 	 * @since   1.2.6
 	 */
-	private function refuse(Event $event, $controlUser, string $reason, ?User $targetUser = null, int $targetId = 0): void
+	private function refuse(Event $event, $controlUser, string $reason, ?User $targetUser = null, int $targetId = 0, $answer = false): void
 	{
 		if ($controlUser instanceof User && !$controlUser->guest && $controlUser->id > 0)
 		{
 			$this->logRequest($controlUser, $targetUser, false, $reason, $targetId);
 		}
 
-		$this->addEventResult($event, false);
+		$this->addEventResult($event, $answer);
 	}
 
 	/**

@@ -114,6 +114,19 @@ class KeyConsumptionTest extends AbstractE2ETestCase
 	}
 
 	/**
+	 * Remove a user a test created, so it does not show up in other tests' view of the Users list.
+	 *
+	 * @param   int  $userId
+	 *
+	 * @return  void
+	 */
+	private function dropUser(int $userId): void
+	{
+		$this->db()->query('DELETE FROM #__user_usergroup_map WHERE user_id = ?', [$userId]);
+		$this->db()->query('DELETE FROM #__users WHERE id = ?', [$userId]);
+	}
+
+	/**
 	 * Run a callback with Joomla's "log everything" option on and return what was logged meanwhile.
 	 *
 	 * @param   callable  $callback
@@ -216,21 +229,47 @@ class KeyConsumptionTest extends AbstractE2ETestCase
 
 	public function testABlockedUserIsNotLoggedIn(): void
 	{
+		// The key request itself refuses blocked users; this is the front-end's own defence for a key that was issued
+		// before the user got blocked.
+		$victim  = static::$fixtures->createUser(['username' => 'soonblocked' . bin2hex(random_bytes(3))]);
 		$browser = $this->superUser();
-		$this->issueKey($browser, 'blocked');
 
-		$this->assertNotServerError($this->visitFrontend($browser));
-		$this->assertFrontendGuest($browser, 'A blocked user was logged in with a key.');
+		$response = $this->requestKey($browser, $victim);
+		$this->assertTrue($this->keyIssued($browser, $response), $response->summary());
+
+		try
+		{
+			$this->db()->query('UPDATE #__users SET block = 1 WHERE id = ?', [$victim]);
+
+			$this->assertNotServerError($this->visitFrontend($browser));
+			$this->assertFrontendGuest($browser, 'A blocked user was logged in with a key.');
+		}
+		finally
+		{
+			$this->dropUser($victim);
+		}
 	}
 
 	public function testAUserWhoMustResetTheirPasswordIsNotLoggedIn(): void
 	{
+		$victim  = static::$fixtures->createUser(['username' => 'mustresetlater' . bin2hex(random_bytes(3))]);
 		$browser = $this->superUser();
-		$this->issueKey($browser, 'mustreset');
 
-		$this->assertNotServerError($this->visitFrontend($browser));
-		$this->assertFrontendGuest($browser);
-		$this->assertSame([], $this->keyRows(), 'The key was not consumed.');
+		$response = $this->requestKey($browser, $victim);
+		$this->assertTrue($this->keyIssued($browser, $response), $response->summary());
+
+		try
+		{
+			$this->db()->query('UPDATE #__users SET requireReset = 1 WHERE id = ?', [$victim]);
+
+			$this->assertNotServerError($this->visitFrontend($browser));
+			$this->assertFrontendGuest($browser);
+			$this->assertSame([], $this->keyRows(), 'The key was not consumed.');
+		}
+		finally
+		{
+			$this->dropUser($victim);
+		}
 	}
 
 	public function testAUserDeletedAfterTheKeyWasIssuedIsNotLoggedIn(): void

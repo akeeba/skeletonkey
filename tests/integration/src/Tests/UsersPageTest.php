@@ -55,6 +55,17 @@ class UsersPageTest extends AbstractE2ETestCase
 		}
 	}
 
+	public function testTheRefusalExplanationsAreAvailableToTheButtonScript(): void
+	{
+		$texts = $this->scriptOptions($this->usersPage($this->superUser()))['joomla.jtext'] ?? [];
+
+		foreach (['PLG_SYSTEM_SKELETONKEY_ERR_BLOCKED', 'PLG_SYSTEM_SKELETONKEY_ERR_MUSTRESET'] as $key)
+		{
+			$this->assertArrayHasKey($key, $texts);
+			$this->assertNotSame($key, $texts[$key], 'The string is not translated.');
+		}
+	}
+
 	public function testTheButtonLabelIsCleanText(): void
 	{
 		$label = $this->scriptOptions($this->usersPage($this->superUser()))['joomla.jtext']['PLG_SYSTEM_SKELETONKEY_BTN_LABEL'] ?? '';

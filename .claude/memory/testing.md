@@ -40,6 +40,17 @@ that touches the database schema this way must clean up after itself.
 - Action-log message keys: `…LOG_REQUEST_*` (granted / failed), `…LOG_REFUSED_*` (one per reason) and `…LOG_REDEEMED`.
   Filter by prefix when counting entries, because one impersonation now writes two.
 
+## Tests that create users must delete them
+
+Rule: a test that creates a user (`static::$fixtures->createUser()`) removes it in a `finally`.
+
+**Why:** the fixtures are provisioned once per run. A leftover user shows up in the Users list, so
+`UsersPageTest::testButtonsAreOfferedForExactlyTheAllowedUsers` fails, and only on the second run against a kept stack.
+
+**How to apply:** see `KeyConsumptionTest::dropUser()`. To make a user unusable *after* a key was issued (blocked,
+must reset, deleted), issue the key first and change the user in the database, since the key request now refuses such
+users.
+
 ## Known-issue skips
 
 `known-issues.md` (git-ignored, kept outside the repository) lists product bugs; a test that covers one uses

@@ -31,6 +31,8 @@ class SkeletonKey extends ActionLogPlugin implements SubscriberInterface
 		'unavailable' => 'PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_UNAVAILABLE',
 		'notfound'    => 'PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_NO_USER',
 		'target'      => 'PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_TARGET',
+		'blocked'     => 'PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_BLOCKED',
+		'mustreset'   => 'PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_MUSTRESET',
 	];
 
 	/** @inheritdoc */

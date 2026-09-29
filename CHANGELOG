@@ -9,6 +9,7 @@ Skeleton Key 1.2.5
 # [MEDIUM] Impersonation could go unaudited if logging the request failed after the login key had been issued
 # [MEDIUM] "Bypass Multi-factor Authentication = No" was ignored on sites with Joomla's default MFA options
 # [MEDIUM] Skeleton Key did not work on sites using "Force HTTPS: Administrator only"
+# [LOW] Login keys were issued for blocked users and users who must reset their password, who can never use them
 # [LOW] Refused key requests and the use of a key were not recorded in the User Actions Log
 # [LOW] A malformed Skeleton Key cookie caused a PHP warning
 # [LOW] A copied login cookie presented from another browser could void the real user's key

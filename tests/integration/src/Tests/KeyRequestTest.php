@@ -174,31 +174,25 @@ class KeyRequestTest extends AbstractE2ETestCase
 		$this->assertRefusedAndInert($browser, $this->requestKey($browser, static::$fixtures->userId('alice')));
 	}
 
-	public function testUsersWhoCanNeverLogInAreNotIssuedAKey(): void
+	public function testUsersWhoCanNeverLogInAreRefusedWithAnExplanation(): void
 	{
-		// blocked and mustreset pass the group checks, so the plugin issues a key and the button reports
-		// success, but the front-end login is then refused (see KeyConsumptionTest). The operator is left
-		// with a blank guest page and no explanation.
-		$issued = [];
+		// A blocked user, or one who must reset their password, can never be logged in by a key. The operator is
+		// told why instead of being sent to a blank guest page, and no key is issued.
+		$expected = ['blocked' => ['blocked', 'BLOCKED'], 'mustreset' => ['mustreset', 'MUSTRESET']];
 
-		foreach (['blocked', 'mustreset'] as $role)
+		foreach ($expected as $role => [$code, $logKey])
 		{
 			$browser  = $this->superUser();
 			$response = $this->requestKey($browser, static::$fixtures->userId($role));
 
-			if ($this->keyIssued($browser, $response))
-			{
-				$issued[] = $role;
-			}
-
-			$this->db()->query('DELETE FROM #__user_keys');
+			$this->assertKeyRefused($browser, $response, $role);
+			$this->assertSame([$code], $response->json()['data'] ?? null, $response->summary());
+			$this->assertSame(
+				'PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_' . $logKey,
+				$this->actionLogs()[0]['message_language_key'] ?? null,
+				'The refusal was not audited with its reason.'
+			);
 		}
-
-		$this->assertOrKnownIssue(
-			$issued === [],
-			6,
-			sprintf('A key is issued (and the button reports success) for %s, who can never be logged in by it.', implode(' and ', $issued))
-		);
 	}
 
 	/**
