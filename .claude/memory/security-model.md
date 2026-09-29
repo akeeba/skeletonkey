@@ -29,3 +29,17 @@ the feature unusable for them.
 **How to apply:** Findings of the form "requester X is not as privileged as target Y" are invalid. Findings where the
 plugin fails to enforce the configured lists, or where an unauthorised party (not a configured requester) obtains a
 key, remain valid.
+
+## Theoretical races and hardening with no practical exploit route are invalid
+
+Rule: a finding is invalid when exploiting it requires a compromise that is already worse (e.g. holding the plaintext
+login cookie, or control of the admin's browser or device) and yields nothing that compromise does not, and when the
+proposed fix could break a legitimate flow.
+
+**Why:** Audit finding L3 (single use is check-then-delete, not atomic) was rejected. Two simultaneous requests carrying
+the same cookie can both authenticate, but only a party who already holds the cookie can cause that, and they could
+just use it first. Meanwhile browsers do send, and servers do receive, duplicate simultaneous requests for a legitimate
+admin, and an atomic delete would turn the second one into a guest.
+
+**How to apply:** Before fixing a finding, ask what the attacker gains beyond what the precondition already gives them,
+and what the fix could break for a legitimate user. Do not make the single-use delete atomic.
