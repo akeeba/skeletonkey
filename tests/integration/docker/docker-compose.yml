@@ -21,6 +21,8 @@ services:
       MYSQL_PASSWORD: "${DB_PASSWORD:-ske2e}"
     command:
       - "--sql-mode="
+      # Lets the test user create the trigger ActionLogTest uses to prove the audit entry precedes the key.
+      - "--log-bin-trust-function-creators=1"
     ports:
       # Published so the host-side PHPUnit process can seed and inspect fixtures.
       - "127.0.0.1:${DB_PORT:-33320}:3306"

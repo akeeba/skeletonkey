@@ -311,23 +311,45 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			return;
 		}
 
-		// Create the cookie
+		/**
+		 * Audit first, issue second. If logging fails (or throws) no key exists yet, so an impersonation can
+		 * never happen without an audit entry. Should issuing the key then fail, that is logged as well.
+		 */
+		$this->logRequest($currentUser, $user, true);
+
 		$createdCookie = $this->createCookie($userId);
 
-		// Trigger the Action Log plugin
+		if (!$createdCookie)
+		{
+			$this->logRequest($currentUser, $user, false);
+		}
+
+		// Return the event result back to com_ajax
+		$this->addEventResult($event, $createdCookie);
+	}
+
+	/**
+	 * Triggers the Action Log plugin for a Skeleton Key request
+	 *
+	 * @param   User  $controlUser    The user asking to log in as another user
+	 * @param   User  $targetUser     The user to be logged in as
+	 * @param   bool  $createdCookie  Whether the key is (being) issued
+	 *
+	 * @return  void
+	 * @since   1.2.6
+	 */
+	private function logRequest(User $controlUser, User $targetUser, bool $createdCookie): void
+	{
 		// Joomla 6.1+ no longer injects a dispatcher into subscriber plugins, so go through the application.
 		$this->getApplication()->getDispatcher()->dispatch(
 			'onSkeletonKeyRequestLogin',
 			new Event('onSkeletonKeyRequestLogin', [
-				'controlUser'   => $currentUser,
-				'targetUser'    => $user,
+				'controlUser'   => $controlUser,
+				'targetUser'    => $targetUser,
 				'createdCookie' => $createdCookie,
 				'mfaBypass'     => (bool) ($this->params->get('bypass_mfa', 0) == 1),
 			])
 		);
-
-		// Return the event result back to com_ajax
-		$this->addEventResult($event, $createdCookie);
 	}
 
 	/**

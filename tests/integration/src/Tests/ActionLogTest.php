@@ -50,6 +50,32 @@ class ActionLogTest extends AbstractE2ETestCase
 		$this->assertStringEndsWith('id=' . static::$fixtures->userId('alice'), $message['requested_link']);
 	}
 
+	public function testTheImpersonationIsLoggedBeforeTheKeyIsIssued(): void
+	{
+		// A trigger refuses to write a key unless the audit entry already exists. If the key were issued first
+		// and only then logged, a failure to log could leave a working, unaudited key behind.
+		$db = $this->db();
+		$db->query('DROP TRIGGER IF EXISTS skeletonkey_e2e_audit_first');
+		$db->query(
+			"CREATE TRIGGER skeletonkey_e2e_audit_first BEFORE INSERT ON #__user_keys FOR EACH ROW BEGIN "
+			. "IF NOT EXISTS (SELECT 1 FROM #__action_logs WHERE extension = 'plg_system_skeletonkey') THEN "
+			. "SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Key issued before it was audited'; END IF; END"
+		);
+
+		try
+		{
+			$browser  = $this->superUser();
+			$response = $this->requestKey($browser, static::$fixtures->userId('alice'));
+
+			$this->assertNotEmpty($this->keyRows('alice'), 'The key was issued before the audit entry was written. ' . $response->summary());
+			$this->assertCount(1, $this->actionLogs());
+		}
+		finally
+		{
+			$db->query('DROP TRIGGER IF EXISTS skeletonkey_e2e_audit_first');
+		}
+	}
+
 	public function testAnImpersonationWithTheMfaBypassIsLoggedAsSuch(): void
 	{
 		$this->setSystemParams(['bypass_mfa' => 1]);
