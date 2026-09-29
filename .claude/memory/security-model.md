@@ -48,3 +48,8 @@ Second example: audit finding L4 (the MFA bypass trusts any successful login; th
 token is validated) was rejected the same way. Exploiting it needs the site-secret-keyed cookie name plus another
 successful login (e.g. a stolen Remember Me cookie, which core already lets skip MFA by default), so it grants nothing
 that precondition does not.
+
+Third example: audit finding L5 (the cookie `Secure` flag follows `force_ssl`, not the actual request scheme) was rejected.
+That is how Joomla itself sets its cookies, and the affected sites (HTTPS front-end redirected to HTTP, or a TLS
+terminator that does not report HTTPS) are misconfigured; deviating from core would break them for no practical gain.
+Match core's cookie behaviour rather than second-guessing it.
