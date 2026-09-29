@@ -255,10 +255,10 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 	public function onAjaxSkeletonkey(Event $event)
 	{
 		$currentUser = $this->getApplication()->getIdentity();
-		$userId      = $this->getApplication()->getInput()->get->getInt('user_id');
+		$userId      = $this->getApplication()->getInput()->post->getInt('user_id');
 
-		// Anti-CSRF token check
-		if (!Session::checkToken('get'))
+		// Anti-CSRF token check. The request is a POST so that neither the token nor the user ID ends up in a URL.
+		if (!Session::checkToken('post'))
 		{
 			return $this->refuse($event, $currentUser, 'token', null, $userId);
 		}

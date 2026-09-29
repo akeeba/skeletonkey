@@ -58,16 +58,15 @@ class KeyRequestTest extends AbstractE2ETestCase
 		$this->assertRefusedAndInert($browser, $this->requestKey($browser, static::$fixtures->userId('alice'), $token));
 	}
 
-	public function testATokenPostedInsteadOfPassedInTheQueryIsRefused(): void
+	public function testARequestOverGetIsRefused(): void
 	{
-		// The plugin checks the token with checkToken('get'). A POST body token must not satisfy it, or the
-		// request would be forgeable from a cross-site form whenever GET tokens leak.
+		// The key request changes state, so it must be a POST. A GET carrying a perfectly valid token and user ID
+		// (which would put the token in URLs and access logs) is not honoured.
 		$browser  = $this->superUser();
 		$token    = $this->backendToken($browser);
-		$response = $browser->post(
+		$response = $browser->get(
 			'administrator/index.php?option=com_ajax&format=json&plugin=skeletonkey&group=system&user_id='
-			. static::$fixtures->userId('alice'),
-			[$token => 1]
+			. static::$fixtures->userId('alice') . '&' . $token . '=1'
 		);
 
 		$this->assertRefusedAndInert($browser, $response);
@@ -148,10 +147,12 @@ class KeyRequestTest extends AbstractE2ETestCase
 	{
 		$browser = $this->superUser();
 		$token   = $this->backendToken($browser);
-		$query   = 'administrator/index.php?option=com_ajax&format=json&plugin=skeletonkey&group=system&' . $token . '=1&';
-		$query  .= $userId === '__array__' ? 'user_id[]=' . static::$fixtures->userId('alice') : 'user_id=' . rawurlencode($userId);
+		$body    = [$token => 1, 'user_id' => $userId === '__array__' ? [static::$fixtures->userId('alice')] : $userId];
 
-		$this->assertRefusedAndInert($browser, $browser->get($query));
+		$this->assertRefusedAndInert(
+			$browser,
+			$browser->post('administrator/index.php?option=com_ajax&format=json&plugin=skeletonkey&group=system', $body)
+		);
 	}
 
 	public function testAUserIdWithTrailingGarbageDoesNotTargetSomebodyElse(): void
@@ -159,9 +160,9 @@ class KeyRequestTest extends AbstractE2ETestCase
 		// getInt() turns "<alice's id>abc" into alice's id. That must still only ever be alice.
 		$browser  = $this->superUser();
 		$token    = $this->backendToken($browser);
-		$response = $browser->get(
-			'administrator/index.php?option=com_ajax&format=json&plugin=skeletonkey&group=system&' . $token
-			. '=1&user_id=' . static::$fixtures->userId('alice') . 'abc'
+		$response = $browser->post(
+			'administrator/index.php?option=com_ajax&format=json&plugin=skeletonkey&group=system',
+			[$token => 1, 'user_id' => static::$fixtures->userId('alice') . 'abc']
 		);
 
 		$this->assertTrue($this->keyIssued($browser, $response), $response->summary());

@@ -60,14 +60,26 @@ const initSkeletonKey = () => {
 
 			const paths = Joomla.getOptions('system.paths');
 			const token = Joomla.getOptions('csrf.token');
-			const uri   = `${paths ? `${paths.base}/index.php` : window.location.pathname}?option=com_ajax&format=json&plugin=skeletonkey&group=system&user_id=%d${token ? `&${token}=1` : ''}`;
+			const uri   = `${paths ? `${paths.base}/index.php` : window.location.pathname}?option=com_ajax&format=json&plugin=skeletonkey&group=system`;
+
+			// The token and the user ID go in the POST body so they never end up in URLs or access logs.
+			const body = new URLSearchParams();
+			body.set('user_id', userId.toString());
+
+			if (token)
+			{
+				body.set(token, '1');
+			}
 
 			Joomla.renderMessages({
 				info: ['Making request...']
 			});
 
 			Joomla.request({
-				url:       uri.replace('%d', userId.toString()),
+				url:       uri,
+				method:    'POST',
+				data:      body.toString(),
+				headers:   {'Content-Type': 'application/x-www-form-urlencoded'},
 				onSuccess: (data, xhr) => {
 					const returnedData = JSON.parse(data).data;
 

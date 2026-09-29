@@ -11,6 +11,7 @@ Skeleton Key 1.2.5
 # [LOW] A malformed Skeleton Key cookie caused a PHP warning
 # [LOW] A copied login cookie presented from another browser could void the real user's key
 # [LOW] Failed Skeleton Key logins were logged as "user 0" instead of naming the affected account
+# [LOW] The anti-CSRF token and user ID of the login request were sent in the URL, ending up in access logs
 
 Skeleton Key 1.2.4
 ================================================================================

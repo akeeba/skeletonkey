@@ -390,20 +390,19 @@ abstract class AbstractE2ETestCase extends TestCase
 				: (string) $surfer->fetchToken('index.php', ['option' => 'com_users', 'view' => 'login']);
 		}
 
-		$params = [
-			'option'  => 'com_ajax',
-			'format'  => 'json',
-			'plugin'  => 'skeletonkey',
-			'group'   => 'system',
-			'user_id' => $userId,
-		];
+		// The request is a POST: the token and the user ID travel in the body, never in the URL.
+		$body = ['user_id' => $userId];
 
 		if ($token !== '')
 		{
-			$params[$token] = 1;
+			$body[$token] = 1;
 		}
 
-		return $surfer->get($client === 'administrator' ? 'administrator/index.php' : 'index.php', $params);
+		return $surfer->post(
+			($client === 'administrator' ? 'administrator/index.php' : 'index.php')
+			. '?option=com_ajax&format=json&plugin=skeletonkey&group=system',
+			$body
+		);
 	}
 
 	/**
