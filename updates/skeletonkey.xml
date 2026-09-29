@@ -59,7 +59,7 @@
         </tags>
         <targetplatform name="joomla" version="4.[01234]|5.[01234]|6.[01234]"/>
         <sha256>
-            a673e4ddeba1da2c328e31df7ab42407fbbfa72524f5c49378e4f48258e97703
+            9f124a65df34509dffa86047a417018da6080c2da499139921577b7fd5e9b80e
         </sha256>
         <client>site</client>
         <php_minimum>7.2</php_minimum>
