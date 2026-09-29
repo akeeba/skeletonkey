@@ -30,7 +30,7 @@ class ActionLogTest extends AbstractE2ETestCase
 		$browser = $this->superUser();
 		$this->logInAs($browser, 'alice');
 
-		$logs = $this->actionLogs();
+		$logs = $this->requestLogs();
 
 		$this->assertOrKnownIssue(
 			$logs !== [],
@@ -82,7 +82,7 @@ class ActionLogTest extends AbstractE2ETestCase
 
 		$this->logInAs($this->superUser(), 'alice');
 
-		$logs = $this->actionLogs();
+		$logs = $this->requestLogs();
 
 		$this->assertOrKnownIssue($logs !== [], 1, 'Nothing is logged: see testAnImpersonationIsLogged.');
 
@@ -100,7 +100,7 @@ class ActionLogTest extends AbstractE2ETestCase
 
 		$this->assertNotServerError($page);
 		$this->assertStringNotContainsString(
-			'PLG_ACTIONLOG_SKELETONKEY_LOG_REQUEST_SUCCESS',
+			'PLG_ACTIONLOG_SKELETONKEY_LOG_',
 			$page->body,
 			'The User Actions Log shows the untranslated language key.'
 		);
@@ -133,10 +133,107 @@ class ActionLogTest extends AbstractE2ETestCase
 		$this->requestKey($this->superUser(), static::$fixtures->userId('super2'));
 		$this->requestKey($this->backendAs('manager'), static::$fixtures->userId('alice'));
 
-		$this->assertOrKnownIssue(
-			count($this->actionLogs()) === 2,
-			4,
-			'Refused requests leave no trace: the plugin only dispatches onSkeletonKeyRequestLogin once every check has passed.'
+		$keys = array_column($this->actionLogs(), 'message_language_key');
+		sort($keys);
+
+		$this->assertSame(
+			['PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_REQUESTER', 'PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_TARGET'],
+			$keys
 		);
+		$this->assertSame([], $this->keyRows());
+	}
+
+	public function testARefusedRequestNamesWhoAskedAndForWhom(): void
+	{
+		$this->requestKey($this->superUser(), static::$fixtures->userId('super2'));
+
+		$log     = $this->actionLogs()[0];
+		$message = json_decode($log['message'], true);
+
+		$this->assertSame(static::$fixtures->userId('admin'), (int) $log['user_id']);
+		$this->assertSame(static::$fixtures->username('admin'), $message['asking_username']);
+		$this->assertSame(static::$fixtures->username('super2'), $message['requested_username']);
+	}
+
+	public function testARequestForAMissingUserIsAudited(): void
+	{
+		$this->requestKey($this->superUser(), 999999);
+
+		$logs = $this->actionLogs();
+
+		$this->assertCount(1, $logs);
+		$this->assertSame('PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_NO_USER', $logs[0]['message_language_key']);
+	}
+
+	public function testARequestWithABadAntiCsrfTokenIsAudited(): void
+	{
+		$browser = $this->superUser();
+		$token   = $browser->corruptToken($this->backendToken($browser));
+
+		$this->requestKey($browser, static::$fixtures->userId('alice'), $token);
+
+		$logs = $this->actionLogs();
+
+		$this->assertCount(1, $logs);
+		$this->assertSame('PLG_ACTIONLOG_SKELETONKEY_LOG_REFUSED_TOKEN', $logs[0]['message_language_key']);
+		$this->assertSame(static::$fixtures->userId('admin'), (int) $logs[0]['user_id']);
+	}
+
+	public function testAnAnonymousRequestIsNotAudited(): void
+	{
+		// Anyone on the Internet can reach the endpoint; only authenticated users may write to the audit log.
+		$browser  = $this->newBrowser();
+		$token    = $browser->fetchToken('administrator/index.php');
+
+		$this->requestKey($browser, static::$fixtures->userId('alice'), $token);
+		$this->requestKey($browser, static::$fixtures->userId('alice'), null, 'site');
+
+		$this->assertSame([], $this->actionLogs());
+	}
+
+	public function testTheRedemptionOfTheKeyIsLogged(): void
+	{
+		$browser = $this->superUser();
+		$this->logInAs($browser, 'alice');
+
+		$this->assertFrontendUser('alice', $browser);
+
+		$logs = array_values(array_filter(
+			$this->actionLogs(),
+			static fn(array $log): bool => $log['message_language_key'] === 'PLG_ACTIONLOG_SKELETONKEY_LOG_REDEEMED'
+		));
+
+		$this->assertCount(1, $logs, 'The use of the key was not logged.');
+		$this->assertSame(static::$fixtures->userId('alice'), (int) $logs[0]['user_id']);
+		$this->assertSame(
+			static::$fixtures->username('alice'),
+			json_decode($logs[0]['message'], true)['requested_username']
+		);
+	}
+
+	public function testARefusedKeyIsNotLoggedAsRedeemed(): void
+	{
+		$browser = $this->superUser();
+		$this->requestKey($browser, static::$fixtures->userId('alice'));
+
+		$this->db()->query('UPDATE #__user_keys SET time = ?', [time() - 5]);
+		$this->visitFrontend($browser);
+
+		$keys = array_column($this->actionLogs(), 'message_language_key');
+
+		$this->assertNotContains('PLG_ACTIONLOG_SKELETONKEY_LOG_REDEEMED', $keys);
+	}
+
+	/**
+	 * The entries about key requests being granted or failing (not refusals or redemptions).
+	 *
+	 * @return  array[]
+	 */
+	private function requestLogs(): array
+	{
+		return array_values(array_filter(
+			$this->actionLogs(),
+			static fn(array $log): bool => str_starts_with($log['message_language_key'], 'PLG_ACTIONLOG_SKELETONKEY_LOG_REQUEST_')
+		));
 	}
 }

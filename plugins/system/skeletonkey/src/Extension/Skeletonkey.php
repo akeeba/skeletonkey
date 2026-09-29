@@ -254,50 +254,40 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 	 */
 	public function onAjaxSkeletonkey(Event $event)
 	{
+		$currentUser = $this->getApplication()->getIdentity();
+		$userId      = $this->getApplication()->getInput()->get->getInt('user_id');
+
 		// Anti-CSRF token check
 		if (!Session::checkToken('get'))
 		{
-			$this->addEventResult($event, false);
-
-			return;
+			return $this->refuse($event, $currentUser, 'token', null, $userId);
 		}
 
 		// Make sure this is the backend.
 		if (!($this->getApplication() instanceof CMSApplication) || !$this->getApplication()->isClient('administrator'))
 		{
-			$this->addEventResult($event, false);
-
-			return;
+			return $this->refuse($event, $currentUser, 'requester', null, $userId);
 		}
 
 		// Make sure the current user is allowed to log into the site as another user.
-		$currentUser = $this->getApplication()->getIdentity();
-
 		if (!($currentUser instanceof User) || empty(array_intersect($currentUser->getAuthorisedGroups(), $this->allowedControlGroups)))
 		{
-			$this->addEventResult($event, false);
-
-			return;
+			return $this->refuse($event, $currentUser, 'requester', null, $userId);
 		}
 
 		// Make sure the authentication plugin is enabled.
 		if (!PluginHelper::isEnabled('authentication', 'skeletonkey'))
 		{
-			$this->addEventResult($event, false);
-
-			return;
+			return $this->refuse($event, $currentUser, 'unavailable', null, $userId);
 		}
 
 		// Make sure the requested user exists
 		/** @var User $user */
-		$userId = $this->getApplication()->getInput()->get->getInt('user_id');
-		$user   = Factory::getContainer()->get(UserFactoryInterface::class)->loadUserById($userId);
+		$user = Factory::getContainer()->get(UserFactoryInterface::class)->loadUserById($userId);
 
 		if ($user->id <= 0 || $user->id != $userId)
 		{
-			$this->addEventResult($event, false);
-
-			return;
+			return $this->refuse($event, $currentUser, 'notfound', null, $userId);
 		}
 
 		// Make sure the requested user is allowed to be accessed via a Skeleton Key
@@ -306,9 +296,7 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 
 		if (!$allowedUser || $disallowedUser)
 		{
-			$this->addEventResult($event, false);
-
-			return;
+			return $this->refuse($event, $currentUser, 'target', $user, $userId);
 		}
 
 		/**
@@ -329,16 +317,45 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 	}
 
 	/**
-	 * Triggers the Action Log plugin for a Skeleton Key request
+	 * Refuse a key request: audit it (when an authenticated user made it) and answer "no" to com_ajax.
 	 *
-	 * @param   User  $controlUser    The user asking to log in as another user
-	 * @param   User  $targetUser     The user to be logged in as
-	 * @param   bool  $createdCookie  Whether the key is (being) issued
+	 * Requests from guests are not audited: anyone on the Internet can reach this endpoint, and the audit log is not
+	 * a place for unauthenticated noise.
+	 *
+	 * @param   Event                $event        The onAjaxSkeletonkey event
+	 * @param   User|mixed           $controlUser  The user making the request
+	 * @param   string               $reason       One of token, requester, unavailable, notfound, target
+	 * @param   User|null            $targetUser   The requested user, if it exists
+	 * @param   int                  $targetId     The requested user ID
 	 *
 	 * @return  void
 	 * @since   1.2.6
 	 */
-	private function logRequest(User $controlUser, User $targetUser, bool $createdCookie): void
+	private function refuse(Event $event, $controlUser, string $reason, ?User $targetUser = null, int $targetId = 0): void
+	{
+		if ($controlUser instanceof User && !$controlUser->guest && $controlUser->id > 0)
+		{
+			$this->logRequest($controlUser, $targetUser, false, $reason, $targetId);
+		}
+
+		$this->addEventResult($event, false);
+	}
+
+	/**
+	 * Triggers the Action Log plugin for a Skeleton Key request
+	 *
+	 * @param   User       $controlUser    The user asking to log in as another user
+	 * @param   User|null  $targetUser     The user to be logged in as, if known
+	 * @param   bool       $createdCookie  Whether the key is (being) issued
+	 * @param   string     $refusal        Why the request was refused; empty when it was not
+	 * @param   int        $targetUserId   The requested user ID
+	 *
+	 * @return  void
+	 * @since   1.2.6
+	 */
+	private function logRequest(
+		User $controlUser, ?User $targetUser, bool $createdCookie, string $refusal = '', int $targetUserId = 0
+	): void
 	{
 		// Joomla 6.1+ no longer injects a dispatcher into subscriber plugins, so go through the application.
 		$this->getApplication()->getDispatcher()->dispatch(
@@ -346,7 +363,9 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 			new Event('onSkeletonKeyRequestLogin', [
 				'controlUser'   => $controlUser,
 				'targetUser'    => $targetUser,
+				'targetUserId'  => $targetUser ? $targetUser->id : $targetUserId,
 				'createdCookie' => $createdCookie,
+				'refusal'       => $refusal,
 				'mfaBypass'     => (bool) ($this->params->get('bypass_mfa', 0) == 1),
 			])
 		);

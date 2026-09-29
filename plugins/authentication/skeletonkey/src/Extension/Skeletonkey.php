@@ -272,6 +272,12 @@ class Skeletonkey extends CMSPlugin implements SubscriberInterface, DatabaseAwar
 
 		$this->destroyCookie();
 
+		// Audit the use of the key. The impersonated user is the one who ends up logged in.
+		$this->getApplication()->getDispatcher()->dispatch(
+			'onSkeletonKeyRedeemLogin',
+			new Event('onSkeletonKeyRedeemLogin', ['targetUser' => $user])
+		);
+
 		return true;
 	}
 
