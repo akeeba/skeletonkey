@@ -3,6 +3,14 @@
 # All versions are configurable through the .env file (see env.dist):
 #   JOOMLA_VERSION, PHP_VERSION, APACHE_VERSION, MYSQL_VERSION.
 #
+# The php and web images are the ones shared by every Akeeba E2E stack. They are built by
+# ../buildfiles/docker/e2e/images.sh — which run.sh calls before bringing the stack up — never by
+# this file, hence `pull_policy: never` and no `build:`. Everything specific to Skeleton Key is
+# bind-mounted into them: php.ini and the Apache vhost.
+#
+# Every service, the volume and the networks carry the org.akeeba.e2e label, which is what the
+# scheduled ../buildfiles/docker/e2e/maintain.sh prunes by.
+#
 # Do not run this by hand. Use ./run.sh, which scrubs, provisions and tests in
 # one shot. This file only describes the services.
 #
@@ -11,9 +19,13 @@
 
 name: skeletonkey-e2e
 
+x-e2e-labels: &e2e-labels
+  org.akeeba.e2e: "1"
+
 services:
   db:
     image: "mysql:${MYSQL_VERSION:-8.4}"
+    labels: *e2e-labels
     environment:
       MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root}"
       MYSQL_DATABASE: "${DB_NAME:-ske2e}"
@@ -38,15 +50,12 @@ services:
       retries: 40
 
   php:
-    build:
-      context: .
-      dockerfile: Dockerfile.php
-      args:
-        PHP_VERSION: "${PHP_VERSION:-8.5}"
-        PUID: "${PUID:-1000}"
-        PGID: "${PGID:-1000}"
+    image: "akeeba-e2e/php:${PHP_VERSION:-8.5}"
+    pull_policy: never
+    labels: *e2e-labels
     volumes:
       - ./www:/var/www/html
+      - ./config/php.ini:/usr/local/etc/php/conf.d/zz-e2e.ini:ro
     # The site itself has NO route to the internet: it only sees db and web over the internal
     # "backend" network. That keeps every run hermetic (no update checks, no stats pings).
     networks:
@@ -56,15 +65,15 @@ services:
         condition: service_healthy
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile.web
-      args:
-        APACHE_VERSION: "${APACHE_VERSION:-2.4}"
+    image: "akeeba-e2e/web:${APACHE_VERSION:-2.4}"
+    pull_policy: never
+    labels: *e2e-labels
     ports:
       - "127.0.0.1:${HTTP_PORT:-8200}:80"
     volumes:
       - ./www:/var/www/html
+      # Skeleton Key's own vhost: the shared default plus the X-Forwarded-Proto → HTTPS mapping.
+      - ./config/e2e-vhost.conf:/usr/local/apache2/conf/extra/e2e-vhost.conf:ro
     networks:
       - default
       - backend
@@ -74,9 +83,12 @@ services:
 networks:
   # Published ports and the host live here.
   default:
+    labels: *e2e-labels
   # php's only network. `internal` means no gateway: nothing on it can reach the outside world.
   backend:
     internal: true
+    labels: *e2e-labels
 
 volumes:
   dbdata:
+    labels: *e2e-labels

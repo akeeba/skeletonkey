@@ -34,7 +34,15 @@ tests/integration/docker/run.sh
 ```
 
 That one command scrubs, brings the stack up, installs Joomla, builds and installs Skeleton Key, provisions the
-fixtures, runs the suite, and tears the stack down.
+fixtures, runs the suite, and tears the stack down — containers, networks and the database volume — however it ends:
+the suite finishing, a failed step, or Ctrl-C. Only `--keep-containers` and `--no-tests` leave it up. After a passing
+run `docker/www/` is deleted too; after a failure it is left for inspection, and the next run clears it.
+
+The `php` and `web` images are not built here. They are the `akeeba-e2e/*` images every Akeeba E2E stack shares,
+defined in the sibling `buildfiles` repository under `docker/e2e/` (see its `README.md`); `run.sh` calls
+`../buildfiles/docker/e2e/images.sh ensure` for each before bringing the stack up. Skeleton Key's own settings are
+bind-mounted into them: `docker/config/php.ini` and `docker/config/e2e-vhost.conf`. A PHP extension the suite needs
+goes into that shared image, never into a project-local Dockerfile.
 
 To iterate, keep the stack up and re-run PHPUnit directly — provisioning is the slow part, the tests themselves
 take seconds:
