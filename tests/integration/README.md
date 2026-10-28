@@ -25,7 +25,8 @@ The unit tests are a separate suite; see [`UnitTest/README.md`](../../UnitTest/R
   that talks to the site over its published ports.
 * **Phing** on your `PATH`, plus the `../buildfiles` checkout and `node`, to build the package (`phing git`; see
   the repository's `README.md`). Skip with `--skip-build` if `release/` already holds a package.
-* `unzip`, `curl`, `gunzip` and `jq`, used to resolve, fetch and extract Joomla.
+* `unzip`, plus `getcms` from the sibling `../buildfiles` checkout (run `composer install` there),
+  used to resolve, download and extract Joomla.
 
 ## Quick start
 
