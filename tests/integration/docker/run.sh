@@ -116,11 +116,20 @@ if [ ! -f .env ]; then
 fi
 
 set -a; . ./.env; set +a
+
+# The Joomla/PHP versions under test are committed, not configured: the shared matrix in buildfiles
+# (and this directory's matrix.env, if any) is sourced AFTER .env so that a stale .env on any machine
+# cannot shadow it. --joomla / --php below still override it for a single run.
+E2E_MATRIX="${REPO_ROOT}/../buildfiles/docker/e2e/matrix"
+[ -f "${E2E_MATRIX}" ] || die "${E2E_MATRIX} not found. Check out akeeba/buildfiles next to this repository."
+set -a
+. "${E2E_MATRIX}"
+if [ -f ./matrix.env ]; then . ./matrix.env; fi
+set +a
 [ -n "${JOOMLA_OVERRIDE}" ] && export JOOMLA_VERSION="${JOOMLA_OVERRIDE}"
 [ -n "${PHP_OVERRIDE}" ] && export PHP_VERSION="${PHP_OVERRIDE}"
 
 : "${JOOMLA_VERSION:?JOOMLA_VERSION is not set}"
-: "${JOOMLA_MATRIX:=5.4:8.1,8.5 6.0:8.3,8.5 6.1:8.3,8.5}"
 : "${DB_PREFIX:=e2e_}"
 : "${DB_NAME:=ske2e}"
 : "${DB_ROOT_PASSWORD:=root}"

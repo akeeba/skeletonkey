@@ -65,7 +65,7 @@ is `test` too).
 |---|---|
 | `-j`, `--joomla=V` | Override `JOOMLA_VERSION` for this run (`6`, `6.1`, `6.1.3`) |
 | `-p`, `--php=V` | Override `PHP_VERSION` for this run (`8.1`, `8.3`, `8.5`) |
-| `--matrix` | Run every Joomla/PHP pair in `JOOMLA_MATRIX`, then exit |
+| `--matrix` | Run every Joomla/PHP pair in the committed `JOOMLA_MATRIX`, then exit |
 | `-f`, `--filter=NAME` | Passed through to PHPUnit |
 | `--skip-build` | Don't run `phing git`; install the newest package already in `release/` |
 | `--no-tests` | Provision the site but don't run the suite (leaves it up) |
@@ -82,14 +82,26 @@ or to run offline. Everything else is configured in `docker/.env` (created from 
 tests/integration/docker/run.sh --matrix
 ```
 
-Runs the suite once per pair in `JOOMLA_MATRIX` — by default Joomla **5.4 on PHP 8.1 and 8.5, 6.0 on PHP 8.3 and
-8.5, 6.1 on PHP 8.3 and 8.5**. Where each bound comes from:
+The Joomla/PHP environments are **committed, not configured**. `JOOMLA_MATRIX` lives in
+`docker/e2e/matrix` of the sibling `buildfiles` repository, shared by every Joomla project, and is
+currently:
+
+| Joomla | PHP | |
+|---|---|---|
+| 5.4 | 8.1 | The oldest Joomla and PHP this project supports |
+| 6 | 8.5 | The latest stable Joomla 6 (`6` resolves to it) on the newest PHP |
+
+They are deliberately not in `env.dist` or `.env`: `.env` is git-ignored and copied once, so anything in
+it goes stale and differs between machines. `run.sh` sources the committed files after `.env`, so a
+stale `.env` cannot shadow them. For a one-off, use `run.sh --joomla=6.0 --php=8.3`; to change what
+everybody tests, edit the committed file and let `audit-e2e-matrix` check the result.
+
+Where the bounds come from:
 
 * **Joomla ≥ 5.4.0, < 6.3** — `$minimumJoomla` / `$maximumJoomla` in
   `plugins/system/skeletonkey/script.plg_system_skeletonkey.php` (the same values as `composer.json`
   `extra.akcompat.limit`, and in the other two plugins' scripts; the unit suite's `VersionLimitsTest` keeps them in
-  step). `run.sh` reads the bounds out of that script and refuses a version outside them before touching Docker. No
-  6.2 release exists yet, so 6.1 is the ceiling in practice.
+  step). `run.sh` reads the bounds out of that script and refuses a version outside them before touching Docker.
 * **PHP ≥ 8.1, < 8.7** — `$minimumPhp` / `$maximumPhp` in the same script (and `composer.json` `require.php`).
   Joomla 6 itself needs PHP 8.3, which `run.sh` reads from the extracted package and enforces. PHP 8.6 has no
   released `php:*-fpm` image yet, so 8.5 is the ceiling in practice.
@@ -100,15 +112,14 @@ Why these pairs, and not just "the latest":
   destroys its cookie (`version_compare(JVERSION, '5.999.999', …)` in both the system and the authentication
   plugin). More importantly, Joomla 6.1 changed `PluginHelper::import()` so it no longer injects a dispatcher into
   `SubscriberInterface` plugins — which is exactly what breaks the key request on 6.1 and not on 5.4 or 6.0 (known
-  issue #1). A single-version run hides that in either direction: on 5.4 or 6.0 everything looks fine, and on 6.1
-  the action-log tests are skipped rather than run.
-* **6.0 and 6.1 both.** 6.0 is the first release on the new cookie branch; 6.1 is the latest, and the first with
-  the new plugin import behaviour. Minor releases do change behaviour Skeleton Key depends on — issue #1 is proof.
-* **The lowest and the highest PHP on each branch.** 8.1 is the declared floor (and only reachable on 5.4); 8.5 is
-  the newest PHP that can actually run.
+  issue #1). A single-version run hides that in either direction.
+* **The lowest and the highest PHP.** 8.1 is the declared floor (and only reachable on 5.4); 8.5 is the newest PHP
+  that can actually run.
 
-A green single-version run proves less than it looks. In particular, the default run (Joomla 6.1) skips the
-action-log assertions because of issue #1; only the 5.4 and 6.0 legs of the matrix exercise them.
+A green single-version run proves less than it looks. In particular, the default run (the latest Joomla 6)
+skips the action-log assertions because of issue #1; **only the 5.4 leg of the matrix exercises them**. Joomla
+6.0, the other release on which they ran, is no longer in the matrix: use `--joomla=6.0 --php=8.3` when you need
+it.
 
 ## What the suite covers
 
