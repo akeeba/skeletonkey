@@ -18,7 +18,7 @@ This runs the default `git` target which compiles JavaScript and creates plugin 
 
 **Compile JavaScript only:**
 ```bash
-phing compile-javascript
+phing compile-js
 ```
 This transpiles `plugins/system/skeletonkey/media/js/backend.js` → `backend.min.js` + source map using Babel with `@babel/preset-env` and `minify`.
 
@@ -36,76 +36,18 @@ Two separate suites; PHPUnit 11 is installed globally (`composer global require 
 
 Known product bugs are tracked in the git-ignored `known-issues.md`; tests covering them skip with `Known issue #N` via `assertOrKnownIssue()` rather than asserting the wrong behaviour.
 
-## Architecture
-
-The package consists of three coordinated Joomla plugins that communicate via Joomla's event system:
-
-### System Plugin (`plugins/system/skeletonkey/`)
-The main orchestrator. Injects "Login as user" buttons into the admin users list (`onBeforeDisplay`), handles AJAX token creation (`onAjaxSkeletonkey`), and detects/validates cookies on frontend page load (`onAfterInitialise`). The frontend JavaScript lives in `media/js/backend.js`.
-
-### Authentication Plugin (`plugins/authentication/skeletonkey/`)
-Validates tokens during the Joomla authentication flow (`onUserAuthenticate`). Verifies the token hash from the cookie against the database, enforces expiration, and implements attack detection (purges all of a user's `#__user_keys` rows when a cookie carries a known series with a wrong token; a replayed, already-used key simply finds no row). Cleans up cookies on logout (`onUserAfterLogout`).
-
-### Action Log Plugin (`plugins/actionlog/skeletonkey/`)
-Audit trail. Listens for `onSkeletonKeyRequestLogin` (which admin asked to log in as which user, granted, failed or refused with a reason) and `onSkeletonKeyRedeemLogin` (a key was used to log in).
-
-### Authentication Flow
-1. Admin clicks "Login as user" button in backend users list
-2. JavaScript sends a POST AJAX request → System plugin audits the request, then generates a random token, stores its hash in `#__user_keys` with short TTL, sets an HTTP-only cookie with the plaintext token
-3. New browser tab opens to the frontend
-4. System plugin's `onAfterInitialise` detects the cookie and triggers Joomla authentication
-5. Authentication plugin validates the token (single-use, checks expiration, verifies hash)
-6. Action Log plugin records the request (before the key is issued), refusals, and the redemption
-
-### Service Providers
-Each plugin registers via `services/provider.php` using Joomla's DI container pattern, implementing `ServiceProviderInterface` to register the extension with `PluginInterface`.
-
-## Key Configuration (Plugin Parameters)
-
-- `allowedControlGroups` — user groups permitted to initiate login-as (default: 8 / Super Users)
-- `allowedTargetGroups` — user groups that can be logged in as (default: 2 / Registered)
-- `disallowedTargetGroups` — user groups that cannot be logged in as (default: 7,8 / Admin & Super User)
-- `cookie_lifetime` — token expiration in seconds (default: 10)
-- `key_length` — random token length in characters (default: 32)
-
-## Languages
-
-Localization files are in INI format under each plugin's `language/` directory. Supported: en-GB (source), de-DE, el-GR, es-ES, fr-FR, it-IT and pt-PT; nl-NL covers the system plugin only.
-
-## Git: commit and tag outside the sandbox
-
-Commits and tags are always signed, with a key held in 1Password. The 1Password signing agent is reached
-over a local socket that agent sandboxes do not expose, so a sandboxed `git commit` or `git tag` **always**
-fails (e.g. `error: 1Password: Could not connect to socket. Is the agent running?`).
-
-Run every `git commit` and `git tag` **outside the sandbox from the first attempt** — in Claude Code with
-`dangerouslyDisableSandbox: true`, in other harnesses with their equivalent unsandboxed / escalated
-execution. Do not try the sandboxed form first, do not diagnose the failure, and never work around it
-with `--no-gpg-sign`, `-c commit.gpgsign=false` or unsigned tags.
+- Commits and tags are signed through 1Password, which sandboxes cannot reach: run every `git commit` / `git tag` outside the sandbox from the first attempt; never use `--no-gpg-sign`. Details: `.claude/memory/git-signing.md`.
 
 ## Project memory
 
-Project memory lives in `.claude/memory/`, committed with the code, so that it is shared across machines
-and across agentic harnesses (Claude Code, Codex, Qwen Code, Kimi Code, Junie, …). Read the relevant file
-**before** starting work that matches its trigger:
+Project memory lives in `.claude/memory/`. Read the matching file before starting that kind of work.
 
-| Before you… | Read |
-|---|---|
-| Add a language, or add, change or translate language strings (INI files, glossaries, manifest `<languages>` entries) | `.claude/memory/translations.md` |
-| Triage, rate or fix a security finding, or decide whether it is in scope | `.claude/memory/security-model.md` |
-| Write or change an end-to-end test (or anything that captures logs, edits site config or needs a DB trigger in a test) | `.claude/memory/testing.md` |
-| Touch cookies, plugin constructors, the package installer script, `build.xml`'s fileset or the key request protocol | `.claude/memory/joomla-compat.md` |
-
-### Recording new memories
-
-This is the **default and only** place for project memory. Do not write memories for this project to a
-harness's private memory store (such as Claude Code's auto-memory under `~/.claude/projects/`); write
-them here instead:
-
-- Add to the existing topic file when one fits; otherwise create a new kebab-case `.md` file named after
-  the topic, and add a row for it to the table above with a concrete trigger.
-- Plain Markdown, no frontmatter. State the rule, then **Why:** (the reason or incident behind it) and
-  **How to apply:**. Link related files with relative Markdown links.
-- Don't record what the code, Git history or an existing `AGENTS.md` already says — update that
-  `AGENTS.md` instead when the rule belongs there. Remove or correct entries that turn out wrong.
-- These files are committed: no secrets, credentials, customer data or personal details.
+| File | Read it when… |
+|------|---------------|
+| [`architecture.md`](.claude/memory/architecture.md) | Before you change the system, authentication or action log plugin, the login-as flow or the plugin parameters |
+| [`translations.md`](.claude/memory/translations.md) | Before you add a language, or add, change or translate language strings (INI files, glossaries, manifest `<languages>` entries) |
+| [`security-model.md`](.claude/memory/security-model.md) | Before you triage, rate or fix a security finding, or decide whether it is in scope |
+| [`testing.md`](.claude/memory/testing.md) | Before you write or change an end-to-end test (or anything that captures logs, edits site config or needs a DB trigger in a test) |
+| [`joomla-compat.md`](.claude/memory/joomla-compat.md) | Before you touch cookies, plugin constructors, the package installer script, `build.xml`'s fileset or the key request protocol |
+| [`git-signing.md`](.claude/memory/git-signing.md) | Before you run `git commit` or `git tag` |
+| [`recording-memories.md`](.claude/memory/recording-memories.md) | Before you add or change a project memory file |

@@ -32,4 +32,8 @@ gitignored build copy; don't edit it instead.
 glossaries keep terminology consistent between runs.
 
 **How to apply:** When adding a language, create all 7 files, update all 4 manifests, and create or
-update the glossary in `build/glossaries/`, and keep the "Languages" line in `AGENTS.md` in step.
+update the glossary in `build/glossaries/`, and keep the "Supported languages" section below in step.
+
+## Supported languages
+
+Localization files are in INI format under each plugin's `language/` directory. Supported: en-GB (source), de-DE, el-GR, es-ES, fr-FR, it-IT and pt-PT; nl-NL covers the system plugin only.
