@@ -59,6 +59,17 @@ tests/integration/docker/run.sh --down   # tear it all down
 While the stack is up the site is on <http://localhost:8200> (`admin` / `test`; every other account's password
 is `test` too).
 
+## Remote host
+
+The whole suite can run on another machine over SSH instead: `tests/integration/docker/run.sh --host=HOST`,
+`E2E_DOCKER_HOST` (environment or `docker/.env`), or `e2e.docker.host` in your `build.properties`.
+`--host=local` forces this machine. Every run on the host gets its own slot (staging tree, Compose project and
+ports), so any number can run at once, also from Git worktrees. The PHP error log and Joomla's logs of a
+failed run come back into `tests/integration/remote-results/`. The host ports in this document apply to local
+runs only; a kept remote stack prints its ports and the `ssh -L` command to reach it. The host needs PHPUnit
+on its `PATH`. Details and host requirements: "Remote E2E hosts" in the sibling `buildfiles` repository's
+README.
+
 ## `run.sh` options
 
 | Option | Effect |
