@@ -84,8 +84,8 @@ README.
 | `--down` | Tear everything down and exit |
 | `-- <args>` | Everything after `--` goes to PHPUnit |
 
-Joomla packages are cached in `inbox/`; drop a `Joomla_X.Y.Z-Stable-Full_Package.zip` there to pin an exact build
-or to run offline. Everything else is configured in `docker/.env` (created from `docker/env.dist` on first run).
+Joomla packages are cached in `inbox/`; it does not decide which version is tested. To run offline, ask for an exact
+version (`--joomla=X.Y.Z`) whose package is there. Everything else is configured in `docker/.env` (created from `docker/env.dist` on first run).
 
 ## The version matrix
 
